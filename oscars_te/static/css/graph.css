@@ -1,0 +1,62 @@
+#states path {
+  fill: #ccc;
+  stroke: #fff;
+}
+
+path.arc {
+  pointer-events: none;
+  fill: none;
+  stroke: #000;
+  /*display: none;*/
+  stroke-width: .5;
+}
+
+path.circuit {
+  pointer-events: none;
+  fill: none;
+  stroke-width: 2;
+}
+
+path.cell {
+  fill: none;
+  pointer-events: all;
+}
+
+path.circuits {
+  fill: none;
+  pointer-events: all;
+}
+
+circle {
+  fill: steelblue;
+  fill-opacity: .8;
+  stroke: #fff;
+}
+
+#cells.voronoi path.cell {
+  stroke: brown;
+}
+
+.label {
+  font-size: 16px;
+  stroke: #777;
+  stroke-width: .5;
+}
+
+#cells g:hover text.label {
+  stroke: #000;
+}
+
+/*#cells g:hover path.arc {
+  stroke-width: 2;
+}*/
+
+/*#cells path.arc {
+  display: inherit;
+}*/
+
+/*#circuits path.arc {
+  display: inherit;
+  color: #0aa;
+}
+*/
