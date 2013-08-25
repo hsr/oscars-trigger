@@ -4,8 +4,6 @@ import socket
 import sys
 import os
 
-
-
 def get_topology(controller='localhost'):
     """Fetches topology from given controller. Returns the json fetched topology.
     An Exception is raised in case of failures."""
@@ -20,7 +18,7 @@ def get_topology(controller='localhost'):
 
     url = "http://%s:%s/wm/topology/links/json" % (host,port)
     try:
-        response = urllib2.urlopen(url, timeout=1).read();
+        response = urllib2.urlopen(url, timeout=3).read();
         if len(response):
             return response
     except Exception, e:
