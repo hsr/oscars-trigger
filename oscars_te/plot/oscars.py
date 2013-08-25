@@ -86,10 +86,8 @@ def update_active_circuits_file(host='localhost:3306'):
         raise Exception(e)
 
     try:
-        circuits_file = open('static/data/circuits.json', 'w');
+        circuits_file = open('oscars_te/static/data/circuits.json', 'w');
     except Exception, e:
-        err += 'Could not open circuits output file.\n'
-        err += 'Do you have write permission to data/circuits.json?\n'
         raise('Could not open circuits output file\n');
 
     for id,hops in circuitsById.items():
