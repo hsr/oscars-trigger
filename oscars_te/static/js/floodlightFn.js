@@ -41,27 +41,35 @@ var linksByOrigin    = {},
     positions        = [];
 
 var arc = d3.geo.greatArc()
-    .source(function(d) { 
-	  switch (d.type) {
-	  case 'LINK':
-		  return locationByDevice[d.source];
-		  break;
-	  case 'CIRCUIT':
-		  return [locationByDevice[d.source][0],locationByDevice[d.source][1]+.1];
-		  break
-	  }
+	.source(function(d) {
+	switch (d.type) {
+	case 'LINK':
+		return locationByDevice[d.source];
+		break;
+	case 'FLLINK':
+		return [locationByDevice[d.source][0] + .2, locationByDevice[d.source][1] + .2];
+		break;
+	case 'CIRCUIT':
+		return [locationByDevice[d.source][0] + .4, locationByDevice[d.source][1] + .4];
+		break;
+	}
 
-  })
-    .target(function(d) { 
-	  switch (d.type) {
-	  case 'LINK':
-		  return locationByDevice[d.target];
-		  break;
-	  case 'CIRCUIT':
-		  return [locationByDevice[d.target][0],locationByDevice[d.target][1]+.1];
-		  break
-	  }
-  });
+})
+	.target(function(d) {
+
+	switch (d.type) {
+	case 'LINK':
+		return locationByDevice[d.target];
+		break;
+	case 'FLLINK':
+		return [locationByDevice[d.target][0] + .2, locationByDevice[d.target][1] + .2];
+		break;
+	case 'CIRCUIT':
+		return [locationByDevice[d.target][0] + .4, locationByDevice[d.target][1] + .4];
+		break
+	}
+});
+
 
 
 function drawUSBackground() {
@@ -73,8 +81,15 @@ function drawUSBackground() {
 	});
 }
 
-function parseFloodlightTopology() {
-	d3.json("/static/data/topology.json", function(topology) {
+function parseFloodlightTopology(topologyFile, callback) {
+    topologyFile = (typeof topologyFile !== 'undefined' ||
+		 			typeof topologyFile === 'function') ?
+    	 topologyFile : "/data/topology.json";
+	
+	var linkColor = '#000000';
+	var flLinkColor = '#000044';
+		
+	d3.json(topologyFile, function(topology) {
 
 		topology.forEach(function(topologyLink) {
 			var origin      = cleanDPID(topologyLink["src-switch"]),
@@ -83,35 +98,65 @@ function parseFloodlightTopology() {
 				dport       = topologyLink["dst-port"],
 				links       = linksByOrigin[origin] || (linksByOrigin[origin] = []);
 
-			links.push({
-				type: 'LINK',
-				source: origin,
-				sport: sport,
-				target: destination,
-				tport: dport
-			});
+			if (topologyFile === "/data/topology.json") {
+				links.push({
+					type: 'FLLINK',
+					source: origin,
+					sport: sport,
+					target: destination,
+					tport: dport,
+					color: flLinkColor
+				});
+			}
+			else {
+				links.push({
+					type: 'LINK',
+					source: origin,
+					sport: sport,
+					target: destination,
+					tport: dport,
+					color: linkColor
+				});
+			}
 			
 			// Manually add bi-directional links
 			links = linksByOrigin[destination] || (linksByOrigin[destination] = []);
 			sport = topologyLink["dst-port"];
 			dport = topologyLink["src-port"];
-			links.push({
-				type: 'LINK',
-				source: destination,
-				sport: sport,
-				target: origin,
-				tport: dport
-			});
+			if (topologyFile === "/data/topology.json") {
+				links.push({
+					type: 'FLLINK',
+					source: destination,
+					sport: sport,
+					target: origin,
+					tport: dport,
+					color: flLinkColor
+				});
+			}
+			else {
+				links.push({
+					type: 'LINK',
+					source: destination,
+					sport: sport,
+					target: origin,
+					tport: dport,
+					color: linkColor
+				});
+			}
 			
 			// countByDevice[origin] = (countByDevice[origin] || 0) + 1;
 			// countByDevice[destination] = (countByDevice[destination] || 0) + 1;
 			countByDevice[origin] = countByDevice[destination] = 2;
 		});
 	});
+	
+	if (typeof callback !== 'undefined') {
+		callback();
+	}
 }
 
 // param @nodeLocationFile: defaults to "/static/data/floodlightLocationMap.csv"
-function drawFloodlightTopology(nodeLocationFile) {
+function drawFloodlightTopology(nodeLocationFile, callback) {
 	
    nodeLocationFile = typeof nodeLocationFile !== 'undefined' ?
    	 nodeLocationFile : "/static/data/floodlightLocationMap.csv";
@@ -156,6 +201,8 @@ function drawFloodlightTopology(nodeLocationFile) {
 			.enter()
 			.append("svg:path")
 			.attr("class", "arc")
+			.style("stroke", function(d) { return d.color; })
+			.style("stroke-dasharray", function(d) { if (d.type == 'FLLINK') {return '5,7';} return '0'; })
 			.attr("d", function(d) { return path(arc(d)); });
 
 		// Draw circles
@@ -180,11 +227,16 @@ function drawFloodlightTopology(nodeLocationFile) {
 			.attr("class", "label")
 			.attr("id", function(d) { return 'netdev' + d.dpid; })
 			.text(function(d) { return d.dpid; });
+		
+		
+		if (typeof callback !== 'undefined') {
+			callback();
+		}
 	});
 }
 
 function drawFloodlightCircuits() {
-	d3.text("/static/data/circuits.json", function(txt) {
+	d3.text("/data/circuits.json", function(txt) {
 		var circuitLinks = jsonObjectListToArray(txt),
 			circuitIDs   = {},
 			previousHop  = '',
@@ -210,7 +262,8 @@ function drawFloodlightCircuits() {
 			var id    = circuitLink.name,
 				links = circuitLinksById[id] || (circuitLinksById[id] = []);
 				hop   = circuitLink.Dpid;
-			console.log("analysing circuit: " + id + ", hop: " + hop)
+			console.log("Processing hop " + hop + ", circuit " + id)
+			
 			// Set ID
 			circuitLink.id = id;
 
@@ -223,16 +276,18 @@ function drawFloodlightCircuits() {
 			}
 
 			if (previousHop != '') {
-				links.push({
-					id: id,
-					type: 'CIRCUIT',
-					source: cleanDPID(previousHop),
-					target: cleanDPID(hop),
-					color: circuitLink.color || ('#'+colorFromString(id + hopSequence))
-				});
-				console.log("new link for " + id + ", " +
-							"src:" + previousHop + " (" + cleanDPID(previousHop) + ") -> " + 
-							"dst:" + hop + " (" + cleanDPID(hop) + ")")
+				if (cleanDPID(previousHop) != '0' && cleanDPID(hop) != '0') {
+					links.push({
+						id: id,
+						type: 'CIRCUIT',
+						source: cleanDPID(previousHop),
+						target: cleanDPID(hop),
+						color: circuitLink.color || ('#'+colorFromString(id + hopSequence))
+					});
+					console.log("new link for " + id + ", " +
+								"src:" + previousHop + " (" + cleanDPID(previousHop) + ") -> " + 
+								"dst:" + hop + " (" + cleanDPID(hop) + ")")
+				}
 			}
 			previousHop = hop
 		});
