@@ -1,3 +1,3 @@
 parseFloodlightTopology();
-drawFloodlightTopology("/static/data/infinerademoLocationMap.csv");
-drawFloodlightCircuits();
+drawFloodlightTopology("/static/data/infinerademoLocationMap.csv",
+						drawFloodlightCircuits);
