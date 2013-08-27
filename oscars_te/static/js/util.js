@@ -17,7 +17,6 @@ function colorFromString(s) {
 	var rgb = intToRGB(hashCode(s));
 	while (rgb.length < 6)
 		rgb = '0' + rgb
-	console.log(rgb)
 	return rgb;
 }
 
