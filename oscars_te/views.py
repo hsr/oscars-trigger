@@ -1,5 +1,5 @@
 import sys
-from flask import request, render_template, jsonify, Response
+from flask import request, render_template, jsonify, Response, send_from_directory, make_response
 from oscars_te import app
 from monitor import *
 import plot
@@ -35,3 +35,11 @@ def handleMonFlowAllRequest():
         return Response(stats, mimetype='application/json')
     except Exception, e:
         return e.message
+        
+@app.route('/data/circuits.json')
+@app.route('/data/topology.json')
+def handleNoCacheFiles():
+    resp = make_response(send_from_directory(app.static_folder+'/../',
+                                             request.path[1:]))
+    resp.cache_control.no_cache = True
+    return resp
