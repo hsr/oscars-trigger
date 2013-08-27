@@ -26,13 +26,13 @@ SELECT_ACTIVE_CIRCUITS_SQL = \
     WHERE r.status ='ACTIVE' and s.constraintType = 'reserved'
     ORDER BY p.pathId,seqNumber"""
 
-def get_mysql_conn(host="infinerademo.es.net", port=3306, 
+def get_mysql_conn(host="infinerademo.es.net", port="3306", 
                    user="reader", passwd="reader", db="rm"):
     try:
-        return my.connect(host=host, port=port, user=user, 
+        return my.connect(host=host, port=int(port), user=user, 
                           passwd=passwd, db=db)
     except Exception, e:
-        raise Exception('Could not connect to OSCARS database\n')
+        raise Exception('Could not connect to OSCARS database at %s:%s\n' % (host,port))
 
 def get_active_circuits(host, port):
     conn = get_mysql_conn(host=host, port=port);
@@ -85,10 +85,11 @@ def update_active_circuits_file(host='localhost:3306'):
     except Exception, e:
         raise Exception(e)
 
+    circuits_filename = 'oscars_te/data/circuits.json'
     try:
-        circuits_file = open('oscars_te/static/data/circuits.json', 'w');
+        circuits_file = open(circuits_filename, 'w');
     except Exception, e:
-        raise('Could not open circuits output file\n');
+        raise Exception('Could not open circuits output file. ');
 
     for id,hops in circuitsById.items():
         for hop in hops:
