@@ -11,7 +11,7 @@ var projection = d3.geo.azimuthal()
 var path = d3.geo.path()
     .projection(projection);
 
-var svg = d3.select("body").insert("svg:svg", "h2")
+var svg = d3.select("#topology").insert("svg:svg", "h2")
     .attr("width", w)
     .attr("height", h);
 
@@ -186,12 +186,12 @@ function drawFloodlightTopology(nodeLocationFile, callback) {
 			.attr("class", "cell")
 			.attr("d", function(d, i) {	return "M" + polygons[i].join("L") + "Z"; })
 			.on("mouseover", function(d, i) {
-				var desc = d.name + " (" + d.dpid + ")\n"
+				var desc = "Device " + d.dpid + ",\n"
 				var links = 'Links (port->node): '
 				linksByOrigin[d.dpid].forEach(function(l) {
 					links += l.sport + '->' + l.target + ','
 				});
-				d3.select("h2 span")
+				d3.select("#deviceinfo")
 					.text(desc + links);
 			});
 

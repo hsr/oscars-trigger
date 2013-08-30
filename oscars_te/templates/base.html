@@ -1,0 +1,54 @@
+{% extends "bootstrap_base.html" %}
+
+{%block title%}OSCARS TE - Traffic Engineering with OSCARS{%endblock%}
+
+{%block body_content%}
+
+	<div class="navbar navbar-fixed-top">
+	  <div class="navbar-inner">
+	    <div class="container">
+	      <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+	        <span class="icon-bar"></span>
+	        <span class="icon-bar"></span>
+	        <span class="icon-bar"></span>
+	      </a>
+	      <a class="brand" href="#"><small>OSCARS</small>TE</a>
+	      <div class="nav-collapse">
+	        <ul class="nav">
+	          <li {% if request.path in ["/","/home"] %}class="active"{% endif %}>
+				  <a href="/"><i class="icon-home"></i>&nbsp;Home</a>
+			  </li>
+	          <li {% if request.path == "/about" %}class="active"{% endif %}>
+				  <a href="/about"><i class="icon-question-sign"></i>&nbsp;About</a>
+			  </li>
+	          <li {% if request.path == "/monitor" %}class="active"{% endif %}>
+				  <a href="#events"><i class="icon-signal"></i>&nbsp;Traffic Monitor</a>
+			  </li>
+	        </ul>
+	      </div><!--/.nav-collapse -->
+	    </div>
+	  </div>
+	</div>
+
+	<div class="container">
+
+	
+	    {% with messages = get_flashed_messages() %}
+		    {% if messages %}
+		    <div class="row">
+		    	<div class="span8 offset4">
+				    <ul>
+				    {% for message in messages %}
+				        <li>{{ message }} </li>
+				    {% endfor %}
+				    </ul>
+				</div>
+			</div>
+		    {% endif %}
+	    {% endwith %}
+
+		{%block main_content%}{%endblock%}
+
+	</div>
+
+{%endblock%}

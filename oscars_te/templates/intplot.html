@@ -1,22 +1,29 @@
-<!DOCTYPE html>
+{% extends "base.html" %}
 
-<html><head>
-<title>Switches and Circuits</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css')}}" type="text/css" media="all">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/graph.css')}}" type="text/css" media="all">
+
+{%block main_content%}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/intplot.css')}}" type="text/css" media="all">
 <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico')}}">
+
+<script type="text/javascript" src="{{ url_for('static', filename='js/d3/d3.v3.min.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/util.js') }}"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='js/d3/d3.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/d3/d3.csv.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/d3/d3.geo.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/d3/d3.geom.js') }}"></script>
-</head><body>
+<script type="text/javascript" src="{{ url_for('static', filename='js/d3/topojson.v1.min.js') }}"></script>
+
 
 <h2><span>Switches and Traffic</span><br></h2>
+
 <div style="position:absolute;bottom:0;font-size:18px;">
 	<input type="checkbox" id="refresh" onchange="refreshPage()">
 	<label for="refresh">Auto-Refresh</label>
 </div>
+
+<h4 id="deviceinfo">Node description</h4>
+
+<div id="topology"></div>
 
 <div style="display:none" id="errorbox">{{ errormsg }}</div>
 
@@ -24,7 +31,7 @@
 	window.onload = setupRefresh;
 
 	function setupRefresh() {
-		document.getElementById('refresh').checked = true;
+		document.getElementById('refresh').checked = false;
 		setTimeout("refreshPage();", 8000); // milliseconds
 	}
 
@@ -43,6 +50,22 @@
 	}
 	showError();
 </script>
-<script type="text/javascript" src="{{ url_for('static', filename='js/floodlightFn.js') }}"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='js/%sPlot.js' % location) }}"></script>
-</body></html>
+
+<script type="text/javascript" src="{{ url_for('static', filename='js/plot/Plot.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/plot/BaseTopology.js') }}"></script>
+
+<script>
+plot = new BaseTopology();
+plot.init();
+plot.usBackground();
+
+plot.initBaseTopology();
+plot.parseBaseTopology();
+
+plot.draw();
+
+</script>
+<!-- <script type="text/javascript" src="{{ url_for('static', filename='js/floodlightFn.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/demoTopologyPlot.js') }}"></script> -->
+
+{%endblock%}

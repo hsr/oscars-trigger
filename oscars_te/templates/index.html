@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{%block main_content%}
+
+<h1>Graphical Vizualization for OSCARS</h1>
+
+<dl>
+	<dt>
+		<a href="/plot?controller=student6.es.net:8080&location=demoTopology">Optical Offloading map (FL Overlay + Fixed topology)</a>
+	</dt>
+	<dd>
+		This plot shows the physical topology with 2 extra overlays.
+		One is composed by OSCARS circuits and the second is the live topology as seen by Floodlight.
+	</dd>
+	<dt>
+		<a href="/plot?controller=student6.es.net:8080&location=infinerademo">Optical Offloading map</a>
+	</dt>
+	<dd>
+		This plot shows the topology as seen by Floodlight on a empty background.
+	</dd>
+	<dt>
+		<a href="/plot?controller=student6.es.net:8080">US map</a>
+	</dt>
+	<dd>
+		Simple topoloy with the US map as background
+	</dd>
+</dl>
+
+{%endblock%}

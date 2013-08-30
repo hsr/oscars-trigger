@@ -12,11 +12,22 @@ def handlePlotRequest():
     location = request.args.get('location','')
     location = 'floodlight' if len(location) < 1 else location
     errormsg = plot.plot(controller, oscarsdb)
-    return render_template('graph.html', location=location, errormsg=errormsg)
+    return render_template('plot.html', location=location, errormsg=errormsg)
 
+@app.route('/intplot')
+def handleInteractivePlotRequest():
+    return render_template('intplot.html')
+
+
+@app.route('/home')
 @app.route('/')
 def handleIndexRequest():
-    return render_template('graph_options.html')
+    return render_template('index.html')
+    
+@app.route('/about')
+def handleAboutRequest():
+    return render_template('about.html')
+    
     
 @app.route('/mon/flow')
 def handleMonFlowRequest():
