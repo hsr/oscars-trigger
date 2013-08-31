@@ -53,19 +53,46 @@
 
 <script type="text/javascript" src="{{ url_for('static', filename='js/plot/Plot.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/plot/BaseTopology.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/plot/FloodlightTopology.js') }}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='js/plot/OscarsTopology.js') }}"></script>
+<script type="text/javascript" >
 
-<script>
-plot = new BaseTopology();
-plot.init();
-plot.usBackground();
+//var plot = new FloodlightTopology();
+var plot = new OscarsTopology();
 
-plot.initBaseTopology();
-plot.parseBaseTopology();
+function setupPlot() {
+	document.getElementById('refresh').checked = true;
 
-plot.draw();
+	plot.init();
+	plot.usBackground();
+	plot.initBaseTopology();
+
+	// plot.parseFloodlightTopology("{{'/data/topology.json?controller=%s' % controller}}",
+	// 							function () { plot.draw(); });
+	plot.parseOscarsTopology("{{'/data/topology.json?controller=%s' % controller}}",
+							 "{{'/data/circuits.json?oscarsdb=%s' % oscarsdb}}",
+	 							function () { plot.draw(); });
+	
+	
+	setTimeout("updateTopology();", 2000); // milliseconds
+	
+	plot.draw();
+}
+
+function updateTopology() {
+	if (document.getElementById('refresh').checked == true) {
+		// plot.parseFloodlightTopology("{{'/data/topology.json?controller=%s' % controller}}",
+		// 							function () { plot.redraw(); });
+		plot.parseOscarsTopology("{{'/data/topology.json?controller=%s' % controller}}",
+								 "{{'/data/circuits.json?oscarsdb=%s' % oscarsdb}}",
+		 							function () { plot.redraw(); });
+		
+		setTimeout("updateTopology();", 2000); // milliseconds
+	}
+}
+
+window.onload = setupPlot;
 
 </script>
-<!-- <script type="text/javascript" src="{{ url_for('static', filename='js/floodlightFn.js') }}"></script>
-<script type="text/javascript" src="{{ url_for('static', filename='js/demoTopologyPlot.js') }}"></script> -->
 
 {%endblock%}

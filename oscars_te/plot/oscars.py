@@ -34,7 +34,12 @@ def get_mysql_conn(host="infinerademo.es.net", port="3306",
     except Exception, e:
         raise Exception('Could not connect to OSCARS database at %s:%s\n' % (host,port))
 
-def get_active_circuits(host, port):
+def get_active_circuits(oscarsdb='localhost'):
+    host,port = (oscarsdb,3306)
+    if len(host.split(':')) > 1:
+        host,port = host.split(':')
+    
+    
     conn = get_mysql_conn(host=host, port=port);
     if not conn:
         return None;
@@ -69,19 +74,22 @@ def get_active_circuits(host, port):
         circuitsById[circuit_id] = nodes
 
     if len(circuitsById.values()):
-        return circuitsById
+        ret = ''
+        for id,hops in circuitsById.items():
+            for hop in hops:
+                ret += '{"name": "%s", "Dpid": "%s"}\n' % (id, hop);
+        return ret;
+        
     raise Exception('No circuits')
+    
+    
 
 def urn_split(urn):
     return [value.split('=')[1] for value in urn.split(':')[3:]]
     
-def update_active_circuits_file(host='localhost:3306'):
-    host,port = (host,3306)
-    if len(host.split(':')) > 1:
-        host,port = host.split(':')
-
+def update_active_circuits_file(oscarsdb='localhost'):
     try:
-        circuitsById = get_active_circuits(host,port);
+        circuits = get_active_circuits(oscarsdb);
     except Exception, e:
         raise Exception(e)
 
@@ -91,8 +99,9 @@ def update_active_circuits_file(host='localhost:3306'):
     except Exception, e:
         raise Exception('Could not open circuits output file. ');
 
-    for id,hops in circuitsById.items():
-        for hop in hops:
-            circuits_file.write('{"name": "%s", "Dpid": "%s"}\n' % (id, hop));
+    # for id,hops in circuitsById.items():
+    #     for hop in hops:
+    #         circuits_file.write('{"name": "%s", "Dpid": "%s"}\n' % (id, hop));
+    circuits_file.write(circuits);
     
     circuits_file.close()

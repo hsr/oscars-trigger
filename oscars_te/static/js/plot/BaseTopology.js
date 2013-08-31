@@ -3,11 +3,13 @@
 var BaseTopology = Plot;
 
 BaseTopology.prototype.cleanup = function () {
-	this.deviceByDPID     = {};
-	this.DPIDByDevice     = {};
 	this.locationByDevice = {};
-	this.circuitLinksById = {};
 	this.positions        = [];	
+	
+}
+
+BaseTopology.prototype.resetLinks = function () {
+	this.linksByOrigin = {};
 }
 
 BaseTopology.prototype.initBaseTopology = function() {
@@ -30,8 +32,8 @@ BaseTopology.prototype.initBaseTopology = function() {
 		case 'FLOODLIGHT':
 			location = [this.locationByDevice[d.source][0] + .2, this.locationByDevice[d.source][1] + .2];
 			break;
-		case 'FLOODLIGHT':
-			location = [this.locationByDevice[d.source][0] + .4, this.locationByDevice[d.source][1] + .4];
+		case 'CIRCUIT':
+			location = [this.locationByDevice[d.source][0] + .1, this.locationByDevice[d.source][1] + .1];
 			break;
 		}
 		return location;
@@ -48,7 +50,7 @@ BaseTopology.prototype.initBaseTopology = function() {
 			location = [this.locationByDevice[d.target][0] + .2, this.locationByDevice[d.target][1] + .2];
 			break;
 		case 'CIRCUIT':
-			location = [this.locationByDevice[d.target][0] + .4, this.locationByDevice[d.target][1] + .4];
+			location = [this.locationByDevice[d.target][0] + .1, this.locationByDevice[d.target][1] + .1];
 			break;
 		}
 		return location;
@@ -57,12 +59,15 @@ BaseTopology.prototype.initBaseTopology = function() {
 
 BaseTopology.prototype.parseBaseTopology = function(file, callback) {
 	var object = this;
-    file = (typeof file === 'string') ?
+	
+    file = (typeof file === 'string' && file.length > 0) ?
     	 file : "/static/data/topology/base.json";
 
 	var linkColor = '#000000';
 	
 	d3.json(file, function(topology) {
+		object.resetLinks();
+		
 		topology.forEach(function(topologyLink) {
 			var origin      = cleanDPID(topologyLink["src-switch"]),
 				destination = cleanDPID(topologyLink["dst-switch"]),
@@ -79,18 +84,18 @@ BaseTopology.prototype.parseBaseTopology = function(file, callback) {
 				color: linkColor
 			});
 		
-			// Manually add bi-directional links
-			links = object.linksByOrigin[destination] || (object.linksByOrigin[destination] = []);
-			sport = topologyLink["dst-port"];
-			dport = topologyLink["src-port"];
-			links.push({
-				type: 'BASE',
-				source: destination,
-				sport: sport,
-				target: origin,
-				tport: dport,
-				color: linkColor
-			});
+			// // Manually add bi-directional links
+			// links = object.linksByOrigin[destination] || (object.linksByOrigin[destination] = []);
+			// sport = topologyLink["dst-port"];
+			// dport = topologyLink["src-port"];
+			// links.push({
+			// 	type: 'BASE',
+			// 	source: destination,
+			// 	sport: sport,
+			// 	target: origin,
+			// 	tport: dport,
+			// 	color: linkColor
+			// });
 
 			object.countByDevice[origin] = object.countByDevice[destination] = 2;
 		});
@@ -130,7 +135,7 @@ BaseTopology.prototype.redraw = function(callback) {
 		// it will be calculated later with object.path()
 		object.locationByDevice[device.dpid] = location;
 		return true;
-	});	
+	});
 
 	devices.forEach(function () {
 		
@@ -162,8 +167,18 @@ BaseTopology.prototype.redraw = function(callback) {
 			.enter()
 			.append("svg:path")
 			.attr("class", "arc")
-			.style("stroke", function(d) { return d.color; })
-			.style("stroke-dasharray", function(d) { if (d.type == 'FLLINK') {return '5,7';} return '0'; })
+			.style("stroke", function(d) {
+				return d.color;
+			})
+			.style("stroke-dasharray", function(d) { 
+				switch (d.type) {
+				case 'FLOODLIGHT':
+					return '5,7';
+					break;
+				default:
+					return '0';
+				}
+			})
 			.attr("d", function(d) { 
 				//console.log(object.linkArc(d));
 				return object.path(object.linkArc(d)); });

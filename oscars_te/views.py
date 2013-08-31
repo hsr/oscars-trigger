@@ -16,7 +16,9 @@ def handlePlotRequest():
 
 @app.route('/intplot')
 def handleInteractivePlotRequest():
-    return render_template('intplot.html')
+    controller = request.args.get('controller','')
+    oscarsdb = request.args.get('oscarsdb','')
+    return render_template('intplot.html', controller=controller, oscarsdb=oscarsdb)
 
 
 @app.route('/home')
@@ -46,11 +48,38 @@ def handleMonFlowAllRequest():
         return Response(stats, mimetype='application/json')
     except Exception, e:
         return e.message
-        
+
+def readStaticFile(filename, path=''):
+    if not len(path):
+        path = app.static_folder+'/../';
+    return make_response(send_from_directory(path,filename))
+
 @app.route('/data/circuits.json')
-@app.route('/data/topology.json')
-def handleNoCacheFiles():
-    resp = make_response(send_from_directory(app.static_folder+'/../',
-                                             request.path[1:]))
+def handleNoCacheCircuits():
+    oscarsdb = request.args.get('oscarsdb','')
+    if len(oscarsdb) > 2:
+        reply = plot.oscars.get_active_circuits(oscarsdb)
+        reply = '[%s]' % ','.join(reply.split('\n')[:-1])
+        resp = Response(reply, mimetype='application/json')
+    else:
+        resp = readStaticFile(request.path[1:])
     resp.cache_control.no_cache = True
     return resp
+
+@app.route('/data/topology.json')
+def handleNoCacheTopology():
+    controller = request.args.get('controller', '')
+    if len(controller) > 1:
+        reply = plot.floodlight.get_topology(controller)
+        resp = Response(reply, mimetype='application/json')
+    else:
+        resp = readStaticFile(request.path[1:])
+    resp.cache_control.no_cache = True
+    return resp
+    
+def handleFloodlightTopologyRequest(controller):
+    try:
+        return plot.floodlight.get_topology(controller)
+    except:
+        return '[]';
+    
