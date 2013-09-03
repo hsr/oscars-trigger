@@ -20,7 +20,7 @@ FloodlightTopology.prototype.parseFloodlightTopology = function(file, callback) 
 	 				dport       = topologyLink["dst-port"],
 	 				links       = object.linksByOrigin[origin] || (object.linksByOrigin[origin] = []);
 
-					console.log('adding new link');
+
 	 			links.push({
 	 				type: 'FLOODLIGHT',
 	 				source: origin,

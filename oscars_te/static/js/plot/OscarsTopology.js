@@ -15,13 +15,12 @@ OscarsTopology.prototype.parseOscarsTopology = function(controller, oscarsdb, ca
 				previousHop  = '',
 				previousID   = 0;
 
-			console.log(circuits);
 			circuits.forEach(function(circuitLink) {
 				var id    = circuitLink.name,
 					hop   = circuitLink.Dpid,
 					links = object.linksByOrigin[cleanDPID(hop)] || (object.linksByOrigin[cleanDPID(hop)] = []);
 
-				console.log("Processing hop " + hop + ", circuit " + id)
+				// console.log("Processing hop " + hop + ", circuit " + id)
 		
 				// Set ID
 				circuitLink.id = id;
@@ -43,9 +42,9 @@ OscarsTopology.prototype.parseOscarsTopology = function(controller, oscarsdb, ca
 							target: cleanDPID(hop),
 							color: ('#00FF00') //+colorFromString(id))
 						});
-						console.log("new link for " + id + ", " +
-									"src:" + previousHop + " (" + cleanDPID(previousHop) + ") -> " + 
-									"dst:" + hop + " (" + cleanDPID(hop) + ")")
+						// console.log("new link for " + id + ", " +
+						// 			"src:" + previousHop + " (" + cleanDPID(previousHop) + ") -> " + 
+						// 			"dst:" + hop + " (" + cleanDPID(hop) + ")")
 					}
 				}
 				previousHop = hop
