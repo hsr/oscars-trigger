@@ -21,8 +21,8 @@
 	          <li {% if request.path == "/about" %}class="active"{% endif %}>
 				  <a href="/about"><i class="icon-question-sign"></i>&nbsp;About</a>
 			  </li>
-	          <li {% if request.path == "/monitor" %}class="active"{% endif %}>
-				  <a href="#events"><i class="icon-signal"></i>&nbsp;Traffic Monitor</a>
+	          <li {% if "/monitor" in request.path %} class="active"{% endif %}>
+				  <a href="/monitor"><i class="icon-signal"></i>&nbsp;Traffic Monitor</a>
 			  </li>
 	        </ul>
 	      </div><!--/.nav-collapse -->
