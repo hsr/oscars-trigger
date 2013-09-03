@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+
+{%block main_content%}
+<script type="text/javascript" src="{{ url_for('static', filename='js/jquery/jquery-1.10.2.min.js') }}"></script>
+<h3><span>Monitor</span><br></h2>
+
+{% if switch %}
+<h4>Flows on switch {{ switch }}</h4>
+<table class="table table-striped" id="table">
+	<tr>
+		<th>Match</th>
+		<th>Bytes</th>
+		<th>Packets</th>
+	</tr>
+</table>
+
+{% else %}
+<table class="table table-striped" id="table">
+	<tr>
+		<th>Switch</th>
+		<th>Flows</th>
+	</tr>
+</table>
+
+{% endif %}
+
+<script type="text/javascript">
+
+function flow2str(match, actions) {
+	var s = ''
+	s += 'dl_dst:' + match.dataLayerDestination;
+	s += ',dl_src:' + match.dataLayerSource;
+	s += ',nw_dst:' + match.networkDestination;
+	s += ',nw_src:' + match.networkSource;
+	
+	s += ',tp_dst:' + match.transportDestination;
+	s += ',tp_src:' + match.transportSource;
+	
+	s += ',in:' + match.inputPort;
+	
+	// i = actions.length
+	// while (i > 0) {
+	// 	if (actions[actions.length - i -1].type == "OUTPUT") {
+	// 		s += ',out:' + actions;			
+	// 	}
+	// 	i--;
+	// }
+	return s
+}
+
+console.log({{stats|tojson|safe}});
+$(document).ready(function () {
+	var stats = $.parseJSON({{ stats|tojson|safe }})
+
+	{% if switch %}
+
+	sw = {{switch|tojson|safe}}
+	console.log(sw);
+	for (flow in stats[sw]) {
+		var line = "<tr><td>"+ flow2str(stats[sw][flow].match, stats[sw][flow].actions) +"</td>" +
+				   "<td>" + stats[sw][flow].byteCount + "</td>" + 
+				   "<td>" + stats[sw][flow].packetCount + "</td></tr>"
+   		$("#table").append(line);
+	}
+
+	{% else %}
+
+	for (sw in stats) {
+		var line = "<tr><td><a href=\"/monitor/switch/"+ sw +"\">" + sw + "</a></td>" +
+				   "<td>" + stats[sw].length + "</td></tr>"
+   		$("#table").append(line);
+	}
+
+	{% endif %}	
+	
+})
+</script>
+
+
+{%endblock%}

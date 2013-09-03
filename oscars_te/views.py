@@ -29,9 +29,19 @@ def handleIndexRequest():
 @app.route('/about')
 def handleAboutRequest():
     return render_template('about.html')
+
+@app.route('/monitor')
+@app.route('/monitor/switch/<switch>')
+def handleMonitorFlowRequest(switch=None):
+    stats = """{"00:00:00:00:00:00:00:01": [ ],"00:00:00:00:00:00:00:04": [ ],"00:00:00:00:00:00:00:07": [ ]}"""
+    try:
+        if type(app.config['controller']) == FloodlightDefaultMonitor:
+            stats = app.config['controller'].getLatestStats()
+    except Exception, e:
+        pass
+    return render_template('monitor.html', switch=switch, stats=stats);
     
-    
-@app.route('/mon/flow')
+@app.route('/monitor/flow')
 def handleMonFlowRequest():
     try:
         stats = app.config['controller'].getLatestStats()
@@ -39,7 +49,7 @@ def handleMonFlowRequest():
     except Exception, e:
         return e.message
         
-@app.route('/mon/flow/all')
+@app.route('/monitor/flow/all')
 def handleMonFlowAllRequest():
     try:
         stats = app.config['controller'].getAllStats()
