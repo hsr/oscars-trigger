@@ -27,30 +27,6 @@
 
 <div style="display:none" id="errorbox">{{ errormsg }}</div>
 
-<script type="text/javascript">
-	window.onload = setupRefresh;
-
-	function setupRefresh() {
-		document.getElementById('refresh').checked = false;
-		setTimeout("refreshPage();", 8000); // milliseconds
-	}
-
-	function refreshPage() {
-		if (document.getElementById('refresh').checked == true) {
-			window.location.reload()
-		}
-	}
-	
-	function showError() {
-		var errorbox = document.getElementById('errorbox');
-		if (errorbox.innerHTML != '') {
-			errorbox.style.display = ''
-		}
-
-	}
-	showError();
-</script>
-
 <script type="text/javascript" src="{{ url_for('static', filename='js/plot/Plot.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/plot/BaseTopology.js') }}"></script>
 <script type="text/javascript" src="{{ url_for('static', filename='js/plot/FloodlightTopology.js') }}"></script>
