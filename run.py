@@ -10,8 +10,14 @@ parser = argparse.ArgumentParser(description='OSCARS Traffic Engineering Applica
 parser.add_argument('controller', action='store',
                     help='SDN Controller URL')
 
+parser.add_argument('--debug', action='store_true',
+                    help='Enable debug mode')
+
+
 args = parser.parse_args()
-app.debug = True
+
+if args.debug:
+    app.debug = True
 
 Bootstrap(app)
 
