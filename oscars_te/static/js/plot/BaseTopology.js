@@ -20,6 +20,7 @@ BaseTopology.prototype.initBaseTopology = function() {
 	this.linksByOrigin    = {};
 	this.countByDevice    = {};
 	this.devices          = [];
+	this.descriptionByDevice = {};
 	
 	this.linkArc = d3.geo.greatArc()
 		.source(function(d) {
@@ -84,26 +85,39 @@ BaseTopology.prototype.parseBaseTopology = function(file, callback) {
 				color: linkColor
 			});
 		
-			// // Manually add bi-directional links
-			// links = object.linksByOrigin[destination] || (object.linksByOrigin[destination] = []);
-			// sport = topologyLink["dst-port"];
-			// dport = topologyLink["src-port"];
-			// links.push({
-			// 	type: 'BASE',
-			// 	source: destination,
-			// 	sport: sport,
-			// 	target: origin,
-			// 	tport: dport,
-			// 	color: linkColor
-			// });
+			// Manually add bi-directional links
+			links = object.linksByOrigin[destination] || (object.linksByOrigin[destination] = []);
+			sport = topologyLink["dst-port"];
+			dport = topologyLink["src-port"];
+			links.push({
+				type: 'BASE',
+				source: destination,
+				sport: sport,
+				target: origin,
+				tport: dport,
+				color: linkColor
+			});
 
 			object.countByDevice[origin] = object.countByDevice[destination] = 2;
 		});
+
+		// Update link descriptions
+		for (var dpid in object.linksByOrigin) {
+			var desc = "Device " + dpid + ",\n"
+			var links = 'Links (port->node): '
+			object.linksByOrigin[dpid].forEach(function(l) {
+				links += l.sport + '->' + l.target + ','
+			});
+			object.descriptionByDevice[dpid] = desc + links;
+		}
+
+		
+		if (typeof callback === 'function') {
+			callback();
+		}
 	});
 
-	if (typeof callback === 'function') {
-		callback();
-	}
+
 };
 
 
@@ -152,13 +166,13 @@ BaseTopology.prototype.redraw = function(callback) {
 			.attr("class", "cell")
 			.attr("d", function(d, i) {	return "M" + object.polygons[i].join("L") + "Z"; })
 			.on("mouseover", function(d, i) {
-				var desc = "Device " + d.dpid + ",\n"
-				var links = 'Links (port->node): '
-				object.linksByOrigin[d.dpid].forEach(function(l) {
-					links += l.sport + '->' + l.target + ','
-				});
+				// var desc = "Device " + d.dpid + ",\n"
+				// var links = 'Links (port->node): '
+				// object.linksByOrigin[d.dpid].forEach(function(l) {
+				// 	links += l.sport + '->' + l.target + ','
+				// });
 				d3.select("#deviceinfo")
-					.text(desc + links);
+					.text(object.descriptionByDevice[d.dpid]);
 			});
 
 		// Draw links using the linkArc object defined before
