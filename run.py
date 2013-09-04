@@ -7,24 +7,36 @@ from flask.ext.bootstrap import Bootstrap
 
 parser = argparse.ArgumentParser(description='OSCARS Traffic Engineering Application')
 
-parser.add_argument('controller', action='store',
-                    help='SDN Controller URL')
+parser.add_argument('--controller', action='store', default='localhost:8080',
+                    help='SDN controller URL. Default: localhost:8080')
+
+parser.add_argument('--oscars', action='store', default='localhost:3306',
+                    help='OSCARS database URL. Default: localhost:3306')
+
+parser.add_argument('--sflow', action='store', default='localhost:8008',
+                    help='sFlow-RT URL. Default: localhost:8008')
 
 parser.add_argument('--debug', action='store_true',
                     help='Enable debug mode')
 
-
 args = parser.parse_args()
 
+app.debug = False
 if args.debug:
     app.debug = True
 
 Bootstrap(app)
 
-if app.debug == False and not app.config.has_key('controller'):
-    app.config['controller'] = FloodlightDefaultMonitor(args.controller)
-    app.config['controller'].start()
+app.config['controller'] = args.controller;
+app.config['oscars'] = args.oscars;
+app.config['sflow'] = args.sflow;
+
+if app.debug == False and not app.config.has_key('controller_instance'):
+    app.config['controller_instance'] = \
+        FloodlightDefaultMonitor(app.config['controller'])
+    sys.stderr.write('Starting Floodlight monitor...\n')
+    app.config['controller_instance'].start()
 
 app.run(host='0.0.0.0')
-app.config['controller'].stop()
+app.config['controller_instance'].stop()
     
