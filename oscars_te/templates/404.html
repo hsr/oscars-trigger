@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Page Not Found{% endblock %}
+{%block main_content%}
+<h1>Page Not Found</h1>
+<p>
+	What you were looking for is just not there.
+	<a href="{{ url_for('handlePageRequest') }}">Return to home.</a>
+</p>
+{% endblock %}

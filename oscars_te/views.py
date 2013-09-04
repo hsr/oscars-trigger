@@ -1,9 +1,15 @@
 import sys
-from flask import request, render_template, jsonify, Response, send_from_directory, make_response
+from flask import abort, request, render_template, jsonify, \
+                    Response, send_from_directory, make_response
 from oscars_te import app
+from jinja2 import TemplateNotFound
 from monitor import *
 import plot
 import json
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
 
 @app.route('/plot')
 def handlePlotRequest():
@@ -16,27 +22,31 @@ def handlePlotRequest():
 
 @app.route('/intplot')
 def handleInteractivePlotRequest():
-    controller = request.args.get('controller','')
-    oscarsdb = request.args.get('oscarsdb','')
-    return render_template('intplot.html', controller=controller, oscarsdb=oscarsdb)
+    controller = ''
+    if app.config.has_key('controller'):
+        controller = app.config['controller'];
+    if len(request.args.get('controller','')) > 0:
+        controller = request.args.get('controller','')
 
+    oscars = request.args.get('oscars','')
+    return render_template('intplot.html',
+        controller=controller, oscarsdb=oscars)
 
-@app.route('/home')
-@app.route('/')
-def handleIndexRequest():
-    return render_template('index.html')
-    
-@app.route('/about')
-def handleAboutRequest():
-    return render_template('about.html')
+@app.route('/', defaults={'page': 'index'})
+@app.route('/<page>')
+def handlePageRequest(page):
+    try:
+        return render_template('%s.html' % page)
+    except TemplateNotFound:
+        abort(404)
 
 @app.route('/monitor')
 @app.route('/monitor/switch/<switch>')
 def handleMonitorFlowRequest(switch=None):
-    stats = """{"00:00:00:00:00:00:00:01": [ ],"00:00:00:00:00:00:00:04": [ ],"00:00:00:00:00:00:00:07": [ ]}"""
+    stats = ""
     try:
-        if type(app.config['controller']) == FloodlightDefaultMonitor:
-            stats = app.config['controller'].getLatestStats()
+        if isinstance(app.config['controller_instance'], FloodlightMonitor):
+            stats = app.config['controller_instance'].getLatestStats()
     except Exception, e:
         pass
     return render_template('monitor.html', switch=switch, stats=stats);
@@ -44,7 +54,7 @@ def handleMonitorFlowRequest(switch=None):
 @app.route('/monitor/flow')
 def handleMonFlowRequest():
     try:
-        stats = app.config['controller'].getLatestStats()
+        stats = app.config['controller_instance'].getLatestStats()
         return jsonify(json.loads(stats))
     except Exception, e:
         return e.message
@@ -61,7 +71,7 @@ def handleMonFlowAllRequest():
 
 def readStaticFile(filename, path=''):
     if not len(path):
-        path = app.static_folder+'/../';
+        path = app.static_folder+'/../'; #TODO: is there any "app.root" ?
     return make_response(send_from_directory(path,filename))
 
 @app.route('/data/circuits.json')
@@ -85,11 +95,4 @@ def handleNoCacheTopology():
     else:
         resp = readStaticFile(request.path[1:])
     resp.cache_control.no_cache = True
-    return resp
-    
-def handleFloodlightTopologyRequest(controller):
-    try:
-        return plot.floodlight.get_topology(controller)
-    except:
-        return '[]';
-    
+    return resp    
