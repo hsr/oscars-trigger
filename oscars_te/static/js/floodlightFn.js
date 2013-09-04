@@ -236,8 +236,8 @@ function drawFloodlightTopology(nodeLocationFile, callback) {
 }
 
 function drawFloodlightCircuits() {
-	d3.text("/data/circuits.json", function(txt) {
-		var circuitLinks = jsonObjectListToArray(txt),
+	d3.json("/data/circuits.json", function(clinks) {
+		var circuitLinks = clinks, //jsonObjectListToArray(txt),
 			circuitIDs   = {},
 			previousHop  = '',
 			previousID   = 0,
