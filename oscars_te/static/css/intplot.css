@@ -26,8 +26,7 @@ path.arc {
   pointer-events: none;
   fill: none;
   stroke: #000;
-  /*display: none;*/
-  stroke-width: .7;
+  stroke-width: .5;
 }
 
 path.circuit {
@@ -67,3 +66,6 @@ circle {
   stroke: #000;
 }
 
+#topology {
+	border: solid 1px #000;
+}

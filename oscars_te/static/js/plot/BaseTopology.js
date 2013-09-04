@@ -31,10 +31,10 @@ BaseTopology.prototype.initBaseTopology = function() {
 			location = this.locationByDevice[d.source];
 			break;
 		case 'FLOODLIGHT':
-			location = [this.locationByDevice[d.source][0] + .2, this.locationByDevice[d.source][1] + .2];
+			location = [this.locationByDevice[d.source][0] + .1, this.locationByDevice[d.source][1] + .1];
 			break;
 		case 'CIRCUIT':
-			location = [this.locationByDevice[d.source][0] + .1, this.locationByDevice[d.source][1] + .1];
+			location = [this.locationByDevice[d.source][0] + .05, this.locationByDevice[d.source][1] + .05];
 			break;
 		}
 		return location;
@@ -48,10 +48,10 @@ BaseTopology.prototype.initBaseTopology = function() {
 			location = this.locationByDevice[d.target];
 			break;
 		case 'FLOODLIGHT':
-			location = [this.locationByDevice[d.target][0] + .2, this.locationByDevice[d.target][1] + .2];
+			location = [this.locationByDevice[d.target][0] + .1, this.locationByDevice[d.target][1] + .1];
 			break;
 		case 'CIRCUIT':
-			location = [this.locationByDevice[d.target][0] + .1, this.locationByDevice[d.target][1] + .1];
+			location = [this.locationByDevice[d.target][0] + .05, this.locationByDevice[d.target][1] + .05];
 			break;
 		}
 		return location;
@@ -187,40 +187,40 @@ BaseTopology.prototype.redraw = function(callback) {
 			.style("stroke-dasharray", function(d) { 
 				switch (d.type) {
 				case 'FLOODLIGHT':
-					return '5,7';
+					return '5,3';
 					break;
 				default:
 					return '0';
 				}
 			})
-			.attr("d", function(d) { 
-				//console.log(object.linkArc(d));
-				return object.path(object.linkArc(d)); });
+			.attr("d", function(d) { return object.path(object.linkArc(d)); });
 
 		// Draw circles
 		object.circles.selectAll("circle")
 			.data(devices).enter().append("svg:circle")
 			.attr("cx", function(d, i) { return object.positions[i][0]; })
 			.attr("cy", function(d, i) { return object.positions[i][1]; })
-			.attr("r", function(d, i) {	return object.countByDevice[d.dpid] * 4; })
+			.attr("r", function(d, i) { return object.countByDevice[d.dpid]*3;})
 			.style("fill", function(d, i) {
 				if (devices[i].type == 1) {
 					return "red";
 				}
 				return "blue";
 			})
-			.sort(function(a, b) { return object.countByDevice[b.dpid] - object.countByDevice[a.dpid]; });
+			.sort(function(a, b) { 
+				return object.countByDevice[b.dpid] - 
+					object.countByDevice[a.dpid];
+			});
 
 		// Add labels
 		g.append("svg:text")
-			.attr("x", function(d, i) { return object.positions[i][0] + 5; })
+			.attr("x", function(d, i) { return object.positions[i][0] + 6; })
 			.attr("y", function(d, i) {	return object.positions[i][1];	})
 			.attr("dy", ".2em")
 			.attr("class", "label")
 			.attr("id", function(d) { return 'netdev' + d.dpid; })
 			.text(function(d) { return d.dpid; });
-	
-	
+
 		if (typeof callback !== 'undefined') {
 			callback();
 		}

@@ -1,6 +1,6 @@
 function Plot(width, height) {
 	if (typeof width != 'number' || typeof height != 'number') {
-		width = 960;
+		width = 920;
 		height = 500;
 	}
 	this.width = width;
