@@ -180,38 +180,37 @@ BaseTopology.prototype.redraw = function(callback) {
 			.data(function(d) {	return object.linksByOrigin[d.dpid] || [];	})
 			.enter()
 			.append("svg:path")
-			.attr("class", "arc")
-			.style("stroke", function(d) {
-				return d.color;
-			})
-			.style("stroke-dasharray", function(d) { 
+			.attr("class", function(d) {
 				switch (d.type) {
+				case 'CIRCUIT':
+					return 'arc circuit';
+					break;
 				case 'FLOODLIGHT':
-					return '5,3';
+					return 'arc floodlight';
 					break;
 				default:
-					return '0';
+					return 'arc';
 				}
+				
+			})
+			.style("stroke", function(d) {
+				return d.color;
 			})
 			.attr("d", function(d) { return object.path(object.linkArc(d)); });
 
 		// Draw circles
 		object.circles.selectAll("circle")
-			.data(devices).enter().append("svg:circle")
-			.attr("cx", function(d, i) { return object.positions[i][0]; })
-			.attr("cy", function(d, i) { return object.positions[i][1]; })
-			.attr("r", function(d, i) { return object.countByDevice[d.dpid]*3;})
-			.style("fill", function(d, i) {
-				if (devices[i].type == 1) {
-					return "red";
-				}
-				return "blue";
+			.data(devices).enter()
+	        .append("image")
+	        .attr("xlink:href", function(d, i) { 
+				if (devices[i].type == 1)
+					return "static/img/red_router.png"
+				return "static/img/router.png"
 			})
-			.sort(function(a, b) { 
-				return object.countByDevice[b.dpid] - 
-					object.countByDevice[a.dpid];
-			});
-
+			.attr("x", function(d, i) { return object.positions[i][0] - 20; })
+			.attr("y", function(d, i) { return object.positions[i][1] - 15; })
+	        .attr("width", 30)
+	        .attr("height", 30);
 		// Add labels
 		g.append("svg:text")
 			.attr("x", function(d, i) { return object.positions[i][0] + 6; })
