@@ -10,20 +10,22 @@ OscarsTopology.prototype.parseOscarsTopology = function(controller, oscarsdb, ca
 	 object.parseFloodlightTopology(controller, function () {
 		d3.json(oscarsdb, function(circuits) {
 			
-			var circuitColor = {},
+			var circuitHops  = {},
 				circuitIDs   = {},
 				previousHop  = '',
 				previousID   = 0;
 
 			circuits.forEach(function(circuitLink) {
+				var id   = circuitLink.name,
+				    hops = circuitHops[cleanDPID(id)] || (circuitHops[cleanDPID(id)] = '');
+				hops += circuitLink.Dpid;
+				circuitHops[cleanDPID(id)] = hops;
+			});
+
+			circuits.forEach(function(circuitLink) {
 				var id    = circuitLink.name,
 					hop   = circuitLink.Dpid,
 					links = object.linksByOrigin[cleanDPID(hop)] || (object.linksByOrigin[cleanDPID(hop)] = []);
-
-				// console.log("Processing hop " + hop + ", circuit " + id)
-		
-				// Set ID
-				circuitLink.id = id;
 
 				// This assumes that all circuit links are sequential in the input file
 				// i.e. no link from a circuit's set of links is mixed with other circuit's 
@@ -40,11 +42,8 @@ OscarsTopology.prototype.parseOscarsTopology = function(controller, oscarsdb, ca
 							type: 'CIRCUIT',
 							source: cleanDPID(previousHop),
 							target: cleanDPID(hop),
-							color: ('#00FF00') //+colorFromString(id))
+							color: '#' + colorFromString(circuitHops[id])
 						});
-						// console.log("new link for " + id + ", " +
-						// 			"src:" + previousHop + " (" + cleanDPID(previousHop) + ") -> " + 
-						// 			"dst:" + hop + " (" + cleanDPID(hop) + ")")
 					}
 				}
 				previousHop = hop
