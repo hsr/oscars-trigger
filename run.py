@@ -14,7 +14,7 @@ parser.add_argument('--controller', action='store', default='localhost:8080',
 parser.add_argument('--oscars', action='store', default='localhost:3306',
                     help='OSCARS database URL. Default: localhost:3306')
 
-parser.add_argument('--trigger', action='store', default='localhost:8008',
+parser.add_argument('--trigger', action='store', default='',
                     help='sFlow-RT URL. Default: localhost:8008')
 
 parser.add_argument('--debug', action='store_true',
@@ -39,9 +39,10 @@ if app.debug == False and not app.config.has_key('controller_instance'):
     app.config['controller_instance'].start()
     
 if app.debug == False and not app.config.has_key('trigger_instance'):
-    app.config['trigger_instance'] = \
-        SFlowTrigger(app.config['trigger'])
-    app.config['trigger_instance'].start()
+    if len(app.config['trigger']) > 0:
+        app.config['trigger_instance'] = \
+            SFlowTrigger(app.config['trigger'])
+        app.config['trigger_instance'].start()
 
 app.run(host='0.0.0.0')
 app.config['controller_instance'].stop()
