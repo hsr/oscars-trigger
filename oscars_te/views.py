@@ -28,7 +28,12 @@ def handleInteractivePlotRequest():
     if len(request.args.get('controller','')) > 0:
         controller = request.args.get('controller','')
 
-    oscars = request.args.get('oscars','')
+    oscars = ''
+    if app.config.has_key('oscars'):
+        oscars = app.config['oscars'];
+    if len(request.args.get('oscars','')) > 0:
+        oscars = request.args.get('oscars','')
+
     return render_template('intplot.html',
         controller=controller, oscarsdb=oscars)
 
