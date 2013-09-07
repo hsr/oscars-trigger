@@ -19,7 +19,7 @@
 <table class="table table-striped" id="table">
 	<tr>
 		<th>Switch</th>
-		<th>Flows</th>
+		<th># Flows</th>
 	</tr>
 </table>
 
@@ -27,32 +27,53 @@
 
 <script type="text/javascript">
 
+function actions2str(actions) {
+	var s = '';
+	for (i in actions) {
+		switch (actions[i].type) {
+		case 'SET_VLAN_ID':
+			s += 'set_vlan:' + actions[i].virtualLanIdentifier + ' ';
+			break;
+		case 'OUTPUT':
+			s += 'output:' + actions[i].port + ' ';
+			break;
+		}
+	}
+	if (s.length > 0)
+		return ', actions='+s;
+	return ''
+}
+
 function flow2str(match, actions) {
 	var s = ''
-	s += 'dl_dst:' + match.dataLayerDestination;
-	s += ',dl_src:' + match.dataLayerSource;
-	s += ',nw_dst:' + match.networkDestination;
-	s += ',nw_src:' + match.networkSource;
-	
-	s += ',tp_dst:' + match.transportDestination;
-	s += ',tp_src:' + match.transportSource;
-	
-	s += ',in:' + match.inputPort;
-	
-	// i = actions.length
-	// while (i > 0) {
-	// 	if (actions[actions.length - i -1].type == "OUTPUT") {
-	// 		s += ',out:' + actions;			
-	// 	}
-	// 	i--;
-	// }
-	return s
+	//if (match.inputPort != 0) {
+		s += 'in:' + match.inputPort;
+	//}
+	if (match.dataLayerVirtualLan != "0")
+		s += ', vlan:' + match.dataLayerVirtualLan;
+	if (match.dataLayerSource != "00:00:00:00:00:00" ||
+		match.dataLayerDestination != "00:00:00:00:00:00") {
+		s += ', l2:' + match.dataLayerSource + '->' 
+			+ match.dataLayerDestination;
+	}
+	if (match.networkSource != '0.0.0.0' || 
+		match.networkDestination != '0.0.0.0') {
+		s += ', l3:' + match.networkSource + '->' 
+			+ match.networkDestination;
+	}
+
+	if (match.transportSource != 0 || 
+		match.transportDestination != 0) {
+		s += ', l4:' + match.transportSource + '->' 
+			+ match.transportDestination;
+	}
+	return s + actions2str(actions);
 }
 
 console.log({{stats|tojson|safe}});
 $(document).ready(function () {
 	var stats = $.parseJSON({{ stats|tojson|safe }})
-
+	
 	{% if switch %}
 
 	sw = {{switch|tojson|safe}}
