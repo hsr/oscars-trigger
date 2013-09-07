@@ -4,27 +4,16 @@ import json
 import time
 import socket
 import urllib2
-import threading
+from oscars_te.runnable import Runnable
 from datetime import datetime as dt
 
-class Flow(object):
-    """This represents a flow being monitored"""
-    def __init__(self, arg):
-        super(Flow, self).__init__()
-        self.arg = arg
-
-class Monitor(threading.Thread):
+class Monitor(Runnable):
     """Periodically monitor flows"""
     def __init__(self, interval = 5):
         super(Monitor, self).__init__()
 
         self.stats = []
         self.interval = float(interval)
-
-        self._shouldStop = threading.Event()
-        self._stopped     = threading.Event()
-        self._shouldStop.clear()
-        self._stopped.clear()
 
     def getAllStats(self):
         if len(self.stats):
@@ -39,23 +28,13 @@ class Monitor(threading.Thread):
     def requestStats(self):
         raise NotImplementedError
 
-    def stop(self): 
-        self._shouldStop.set()
-        return
-
-    def shouldStop(self):
-        return self._shouldStop.is_set()
-
-    def isStopped(self):
-        self._stopped.is_set()
-        return
-
     def run(self):
         """
         Periodically fetch stats using method self.requestStats()
         that should be implemented by sub classes
         """
         try:
+
             while not self.shouldStop():
                 runTime = dt.now()
                 if len(self.stats) > 10:
@@ -70,11 +49,11 @@ class Monitor(threading.Thread):
                     # TODO: replace by logger
                     sys.stderr.write("Command is taking more than %f to execute!" % \
                                     self.interval)
-                    wait4 = 0
-                self._shouldStop.wait(wait4)
+                else:
+                    self.waitInterruptible(wait4)
         except:
             None
-        self._stopped.set()
+        self.terminate()
 
 class FloodlightMonitor(Monitor):
     def __init__(self, controller, interval):
