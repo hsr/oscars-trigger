@@ -1,8 +1,7 @@
 import oscars
 import floodlight
 
-# Floodlight controller url/ip address and port
-def plot(controller = 'localhost:8080', oscarsdb = 'localhost'):
+def get_all(controller = 'localhost:8080', oscarsdb = 'localhost'):
     errormsg = ''
     if controller != 'skip':
         try:

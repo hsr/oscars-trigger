@@ -204,8 +204,8 @@ BaseTopology.prototype.redraw = function(callback) {
 	        .append("image")
 	        .attr("xlink:href", function(d, i) { 
 				if (devices[i].type == 1)
-					return "static/img/red_router.png"
-				return "static/img/router.png"
+					return "/static/img/red_router.png"
+				return "/static/img/router.png"
 			})
 			.attr("x", function(d, i) { return object.positions[i][0] - 20; })
 			.attr("y", function(d, i) { return object.positions[i][1] - 15; })
