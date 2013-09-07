@@ -62,8 +62,8 @@ class Runnable(threading.Thread):
         called.
         """
         if duration < 0:
-            return self._shouldStop.wait(duration)
-        return self._shouldStop.wait()
+            return self._shouldStop.wait()
+        return self._shouldStop.wait(duration)
 
 
     def run(self):
