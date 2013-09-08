@@ -51,8 +51,7 @@ class Runnable(threading.Thread):
         Useful to determine if the Runnable object had
         stopped its execution.
         """
-        self._stopped.is_set()
-        return
+        return self._stopped.is_set()
     
     def waitInterruptible(self, duration=-1):
         """
