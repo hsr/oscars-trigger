@@ -1,2 +1,7 @@
 *.pyc
 ._*
+oscars_te/trigger/sflow-rt
+oscars_te/data/topology.json
+oscars_te/data/circuits.json
+oscars_te/static/data/topology.json
+oscars_te/static/data/circuits.json

@@ -1,0 +1,1 @@
+[{"src-switch":"00:00:00:00:00:00:00:08","src-port":1,"dst-switch":"00:00:00:00:00:00:00:09","dst-port":2,"type":"internal","direction":"bidirectional"},{"src-switch":"00:00:00:00:00:00:00:01","src-port":2,"dst-switch":"00:00:00:00:00:00:00:09","dst-port":1,"type":"internal","direction":"bidirectional"}]
