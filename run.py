@@ -37,13 +37,24 @@ if app.debug == False and not app.config.has_key('controller_instance'):
         FloodlightDefaultMonitor(app.config['controller'])
     sys.stderr.write('Starting Floodlight monitor...\n')
     app.config['controller_instance'].start()
+else:
+    app.config['controller_instance'] = None;
     
 if app.debug == False and not app.config.has_key('trigger_instance'):
     if len(app.config['trigger']) > 0:
         app.config['trigger_instance'] = \
-            SFlowTrigger(app.config['trigger'])
+            SFlowTrigger(
+                app.config['trigger'], 
+                app.root_path + '/trigger/sflow-rt/start.sh')
         app.config['trigger_instance'].start()
+else:
+    app.config['trigger_instance'] = None;
+
 
 app.run(host='0.0.0.0')
-app.config['controller_instance'].stop()
-    
+
+if app.config['controller_instance']:
+    app.config['controller_instance'].stop()
+
+if app.config['trigger_instance']:
+    app.config['trigger_instance'].stop()
