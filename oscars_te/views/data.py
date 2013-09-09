@@ -11,7 +11,7 @@ def handleNoCacheCircuits():
         reply = '[%s]' % ','.join(reply.split('\n')[:-1])
         resp = Response(reply, mimetype='application/json')
     else:
-        resp = send_file(request.path[1:])
+        resp = send_file('static' + request.path)
     resp.cache_control.no_cache = True
     return resp
 
@@ -22,6 +22,6 @@ def handleNoCacheTopology():
         reply = communicator.floodlight.get_topology(controller)
         resp = Response(reply, mimetype='application/json')
     else:
-        resp = send_file(request.path[1:])
+        resp = send_file('static' + request.path)
     resp.cache_control.no_cache = True
     return resp    
