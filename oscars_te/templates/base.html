@@ -4,75 +4,7 @@
 
 {%block body_content%}
 
-	<div class="navbar navbar-fixed-top">
-	  <div class="navbar-inner">
-	    <div class="container">
-	      <a class="brand" href="#"><small>OSCARS</small>TE</a>
-	      	<ul class="nav">
-	          <li class="{{'active' if request.path in ["/home/", "/","/home"] }}">
-				  <a href="/">
-					  <i class="icon-home"></i>&nbsp;Home
-				  </a>
-			  </li>
-	          <li class="{{'active' if '/about' in request.path }}">
-				  <a href="/about">
-					  <i class="icon-question-sign"></i>&nbsp;About
-				  </a>
-			  </li>
-	          <li class="{{'active' if '/monitor' in request.path }}">
-				  <a href="/monitor">
-					  <i class="icon-signal"></i>&nbsp;Traffic Monitor
-				  </a>
-			  </li>
-		  	</ul>
-		  	<ul class="nav pull-right">
-			  <li class="dropdown">
-				  {% if not g.user.is_authenticated() %}
-				  <a class="dropdown-toggle" data-toggle="dropdown" href="#">
-					  Sign in <span class="caret"></span>
-				  </a>
-				  <div class="dropdown-menu" style="padding: 15px; padding-bottom: 0px;">
-					  <script type="text/javascript">
-					  function set_openid(openid, pr)
-					  {
-					      u = openid.search('<username>');
-					      if (u != -1) {
-					          // openid requires username
-					          user = prompt('Enter your ' + pr + ' username:');
-					          openid = openid.substr(0, u) + user;
-					      }
-					      form = document.forms['login'];
-					      form.elements['openid'].value = openid;
-					  }
-					  </script>
-					  <form action="/login" method="post" name="login">
-					      {{g.authform.hidden_tag()}}
-					      <p>
-					          Please enter your OpenID, or select one of the providers below:<br>
-					          {{g.authform.openid(size=80)}}
-					          {% for error in g.authform.errors.openid %}
-					          <span style="color: red;">[{{error}}]</span>
-					          {% endfor %}<br>
-					          |{% for pr in g.authproviders %}
-					          <a href="javascript:set_openid('{{pr.url}}', '{{pr.name}}');">{{pr.name}}</a> |
-					          {% endfor %}
-					      </p>
-					      <p>{{g.authform.remember_me}} Remember Me</p>
-					      <p><input type="submit" value="Sign In"></p>
-					  </form>
-	              </div>
-				  {% else %}
-		          <li>
-					  <a href="/logout">
-						  Logout&nbsp;<i class="icon-off"></i>
-					  </a>
-				  </li>
-				  {% endif %}
-			  </li>
-	        </ul>
-	    </div>
-	  </div>
-	</div>
+	{% include "navbar.html" %}
 
 	<div class="container">
 
