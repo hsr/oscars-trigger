@@ -5,3 +5,5 @@ oscars_te/data/topology.json
 oscars_te/data/circuits.json
 oscars_te/static/data/topology.json
 oscars_te/static/data/circuits.json
+db_repository
+oscars_te/tmp
