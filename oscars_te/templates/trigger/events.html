@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{%block main_content%}
+
+<h3>Trigger Events</h3>
+<table class="table table-striped" id="table">
+	<tr>
+		<th>ID</th>
+		<th>Switch</th>
+		<th>Flow</th>
+		<th>Value</th>
+		<th>Ifindex</th>
+	</tr>
+	{% for event in events %}
+	<tr>
+		<td>{{event.eventID}}</td>
+		<td>{{event.agent}}</td>
+		<td>{{event.flowKey}}</td>
+		<td>{{event.value}}</td>
+		<td>{{event.dataSource}}</td>
+	</tr>	
+	{% endfor %}
+</table>
+
+{% macro render_pagination(pagination) %}
+<div class="pagination">
+  <ul>
+  {% if pagination.has_prev %}
+  <li>
+    <a href="{{ url_for_other_page(pagination.page - 1) }}">&laquo;</a>
+  </li>
+  {% else %}
+  <li class="disabled"><a href="#">&laquo;</a></li>
+  {% endif %}
+  
+  {%- for page in pagination.iter_pages() %}
+    {% if page %}
+      {% if page != pagination.page %}
+	  <li>
+		  <a href="{{ url_for_other_page(page) }}">{{ page }}</a>
+	  </li>
+      {% else %}
+      <li class="active"><a href="#">{{ page }}</a></li>
+      {% endif %}
+    {% else %}
+      <span class=ellipsis>...</span>
+    {% endif %}
+  {%- endfor %}
+  {% if pagination.has_next %}
+  <li>
+    <a href="{{ url_for_other_page(pagination.page + 1) }}">&raquo;</a>
+  </li>
+  {% else %}
+  <li class="disabled"><a href="#">&raquo;</a></li>
+  {% endif %}
+  </ul>
+</div>
+{% endmacro %}
+
+{{render_pagination(pagination)}}
+
+{%endblock%}

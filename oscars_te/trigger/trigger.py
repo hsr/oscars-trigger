@@ -3,9 +3,11 @@ import sys
 import json
 import signal
 import socket
+import pprint
 import requests
 import threading
 import subprocess
+
 from datetime import datetime as dt
 
 from oscars_te.runnable import Runnable
@@ -14,9 +16,14 @@ class Trigger(Runnable):
     """Periodically monitor flows"""
     def __init__(self):
         super(Trigger, self).__init__()
+        self._events = []
         
     def getEvents(self):
-        raise NotImplementedError
+        return self._events
+
+    def addEvent(self, event):
+        self._events = [event] + self._events
+
         
     def actOnEvent(self):
         raise NotImplementedError
@@ -62,37 +69,61 @@ class SFlowTrigger(Trigger):
             ' target=\"127.0.0.1:6343\" sampling=10 polling=20 -- -- set' + \
             ' bridge s1 sflow=@sflow'
 
-    def registerEventListener(self, groups, flows, threshold):
-        """docstring for registerEventListener"""
-        url = 'http://%s:%d' % (self._url['host'], self._url['port'])
+    def registerLargeTCPEventListener(self, threshold_value=6000):
+        flow = {
+            'value':'frames',
+            'keys':'ipsource,ipdestination,tcpsourceport,tcpdestinationport'
+        }
+        threshold = {
+            'metric': 'largeflow',
+            'value': threshold_value, # what is large?
+            'byFlow': 'true'
+        }
         
-        try:
-            sys.stderr.write('Registering group ' + str(groups) + '\n');
-            r = requests.put(url + '/group/json', data=json.dumps(groups))
-            sys.stderr.write(str(r) + '\n');
-
-            sys.stderr.write('Registering flows ' + str(flows) + '\n');
-            r = requests.put(url + '/flow/incoming/json', data=json.dumps(flows))
-            sys.stderr.write(str(r) + '\n');
+        self.registerFlow('largeflow', flow)
+        self.registerThreshold('largeflow', threshold)
         
-            sys.stderr.write('Registering threshold ' + str(threshold) + '\n');
-            r = requests.put(url + '/threshold/incoming/json', 
-                data=json.dumps(threshold))
-            sys.stderr.write(str(r) + '\n');
-        except Exception, e:
-            sys.stderr.write("Could not register event listener\n")
-            sys.stderr.write(str(e) + '\n')
-
     
     def registerDefaultEventListener(self):
         """docstring for registerDefaultEventListener"""
         # Should we export this in the interface?
-        groups = {'external':['10.0.0.91/32'],'internal':['10.0.0.71/32']}
-        flows = {'value':'frames',
+        group = {'external':['10.0.0.91/32'],'internal':['10.0.0.71/32']}
+        flow = {
+            'value':'frames',
             'keys':'ipsource,ipdestination',
-            'filter':'sourcegroup=external&destinationgroup=internal'}
-        threshold = {'metric':'incoming','value':10}
-        self.registerEventListener(groups, flows, threshold)
+            'filter':'sourcegroup=external&destinationgroup=internal'
+        }
+        threshold = {
+            'metric':'incoming',
+            'value':10
+        }
+        #self.registerEventListener(groups, flows, threshold)
+        self.registerGroup(group)
+        self.registerFlow('incoming', flow)
+        self.registerThreshold('incoming', threshold)
+    
+    def registerThreshold(self, threshold_name, threshold_value):
+        url = 'http://%s:%d' % (self._url['host'], self._url['port'])
+        sys.stderr.write('Registering threshold %s\n' % str(threshold_value));
+        r = requests.put('%s/threshold/%s/json' % (url, threshold_name),
+                        data=json.dumps(threshold_value))
+        sys.stderr.write(str(r) + '\n');
+    
+    def registerGroup(self, group_description):
+        url = 'http://%s:%d' % (self._url['host'], self._url['port'])
+        sys.stderr.write('Registering group %s\n' % str(group_description));
+        r = requests.put('%s/group/json' % (url),
+                        data=json.dumps(group_description))
+        sys.stderr.write(str(r) + '\n');
+        
+    
+    def registerFlow(self, flow_name, flow_description):
+        url = 'http://%s:%d' % (self._url['host'], self._url['port'])
+        sys.stderr.write('Registering flow %s\n' % str(flow_description));
+        r = requests.put('%s/flow/%s/json' % (url, flow_name),
+                        data=json.dumps(flow_description))
+        sys.stderr.write(str(r) + '\n');
+        
         
     def setUrl(self, url): 
         host,port = (url,8008)
@@ -133,9 +164,21 @@ class SFlowTrigger(Trigger):
             # 2 seconds, because if it starts under load, it may not respond
             self.waitInterruptible(2)
 
-        sys.stderr.write('Registering default event listener...\n')
-        self.registerDefaultEventListener()
-        
+        maxTries = 10
+        while maxTries > 0:
+            try:
+                sys.stderr.write('Registering default event listener...\n')
+                #self.registerDefaultEventListener()
+                self.registerLargeTCPEventListener()
+                maxTries = -1
+            except:
+                self.waitInterruptible(2)
+                maxTries -= 1
+        if maxTries == 0:
+            self.collector.stop()
+            self.stop()
+            self.terminate()
+            raise Exception("Ops, something went wrong")
         
         last_event_id = -1;
         while not self.shouldStop():
@@ -143,17 +186,25 @@ class SFlowTrigger(Trigger):
             events = self.requestEvents(last_event_id)
             if len(events) == 0: continue
             
-            sys.stderr.write(str(events))
-            
-            self.last_event_id = events[0]["eventID"]
+            last_event_id = events[0]["eventID"]
             for e in events:
-                if 'incoming' == e['metric']:
-                    r = requests.get('http://%s:%d/metric/%s/%s.%s/json' % \
-                        (self._url['host'], self._url['port'], e['agent'],
-                        e['dataSource'], e['metric']))
-                    metric = r.json()
-                    if len(metric) > 0:
-                        sys.stderr.write(metric[0]["topKeys"][0]["key"])
+                
+                s = pprint.pformat(events)
+                sys.stderr.write(s+'\n')
+                
+                self.addEvent(e)
+                
+                #if 'incoming' == e['metric']:
+                r = requests.get('http://%s:%d/metric/%s/%s.%s/json' % \
+                    (self._url['host'], self._url['port'], e['agent'],
+                    e['dataSource'], e['metric']))
+                metric = r.json()
+                
+                
+                if len(metric) > 0:
+                    #pprint.pformat(metric[0]["topKeys"][0]["key"])
+                    s = pprint.pformat(metric)
+                    sys.stderr.write('Metric:\n' + s +'\n')
 
         if self.collector:
             while not self.collector.isStopped():
