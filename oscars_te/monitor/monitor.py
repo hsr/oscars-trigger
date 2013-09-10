@@ -34,7 +34,7 @@ class Monitor(Runnable):
         that should be implemented by sub classes
         """
         try:
-
+            sys.stderr.write('Starting monitor...\n')
             while not self.shouldStop():
                 runTime = dt.now()
                 if len(self.stats) > 10:
