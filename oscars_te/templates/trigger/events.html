@@ -18,45 +18,35 @@
 		<td>{{event.flowKey}}</td>
 		<td>{{event.value}}</td>
 		<td>{{event.dataSource}}</td>
-	</tr>	
+	</tr>
+	{% else %}
+	<tr><td colspan="5">No events</td></tr>
+	<tr><td colspan="5"></td></tr>
 	{% endfor %}
 </table>
 
-{% macro render_pagination(pagination) %}
-<div class="pagination">
-  <ul>
-  {% if pagination.has_prev %}
-  <li>
-    <a href="{{ url_for_other_page(pagination.page - 1) }}">&laquo;</a>
-  </li>
-  {% else %}
-  <li class="disabled"><a href="#">&laquo;</a></li>
-  {% endif %}
-  
-  {%- for page in pagination.iter_pages() %}
-    {% if page %}
-      {% if page != pagination.page %}
-	  <li>
-		  <a href="{{ url_for_other_page(page) }}">{{ page }}</a>
-	  </li>
-      {% else %}
-      <li class="active"><a href="#">{{ page }}</a></li>
-      {% endif %}
-    {% else %}
-      <span class=ellipsis>...</span>
-    {% endif %}
-  {%- endfor %}
-  {% if pagination.has_next %}
-  <li>
-    <a href="{{ url_for_other_page(pagination.page + 1) }}">&raquo;</a>
-  </li>
-  {% else %}
-  <li class="disabled"><a href="#">&raquo;</a></li>
-  {% endif %}
-  </ul>
-</div>
-{% endmacro %}
+{% from "trigger/macros.html" import render_pagination, render_inline_field, render_control_field, render_field %}
 
 {{render_pagination(pagination)}}
+
+{% if g.user.is_authenticated() and g.user.is_admin() %}
+
+<div class="well">
+	<h4>Add a new event</h4>
+	<form class="form-horizontal" method="post">
+	    {{form.hidden_tag()}}
+		{{render_control_field(form.name)}}
+		{{render_control_field(form.keys)}}
+		{{render_control_field(form.metric)}}
+		{{render_control_field(form.switch)}}
+		{{render_control_field(form.datapath)}}
+		{{render_control_field(form.port)}}
+		{{render_control_field(form.by_flow)}}
+		{{render_control_field(form.threshold)}}
+		<button type="submit" class="btn">Add</button>
+	</form>
+</div>
+{% endif %}
+
 
 {%endblock%}

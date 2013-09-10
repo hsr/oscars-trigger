@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{%block main_content%}
+
+{% from "trigger/macros.html" import render_switch_list, render_switch %}
+
+{% if not switch %}
+	{{ render_switch_list(switches) }}
+
+	{% if g.user.is_authenticated() and g.user.is_admin() %}
+
+	<h4>Add a new switch</h4>
+
+	<form action="" method="post" class="form-inline">
+	    {{form.hidden_tag()}}
+		{{form.switch_name(placeholder='Switch', size=40)}}
+		{{form.switch_address(placeholder='IP Address', size=30)}}
+		<button type="submit" class="btn">Add</button>
+	</form>
+
+	{% endif %}
+
+{% else %}
+	{{ render_switch(switch, switches[switch]) }}
+{% endif %}
+
+{%endblock%}

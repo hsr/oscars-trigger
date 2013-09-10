@@ -18,14 +18,9 @@
 				  <i class="icon-eye-open"></i>&nbsp;Trigger
 				  <span class="caret"></span>
 		          <ul class="dropdown-menu" role="menu">
+		            <li><a href="/trigger/flows">Flows</a></li>
 		            <li><a href="/trigger/events">Events</a></li>
-					<li class="divider"></li>
-		            <li><a href="/trigger/admin/switches">
-						Manage Switches
-					</a></li>
-					<li><a href="/trigger/admin/events">
-						Manage Events
-					</a></li>
+		            <li><a href="/trigger/switches">Switches</a></li>
 		          </ul>
 			  </a>
 		  </li>
@@ -35,6 +30,7 @@
 			  </a>
 		  </li>
 	  	</ul>
+		<!-- SIGN IN NAV -->
 	  	<ul class="nav pull-right">
 		  <li class="dropdown">
 			  {% if not g.user.is_authenticated() %}
@@ -80,6 +76,7 @@
 			  {% endif %}
 		  </li>
         </ul>
+		<!-- END SIGN IN NAV -->
     </div>
   </div>
 </div>

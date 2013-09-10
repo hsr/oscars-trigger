@@ -8,26 +8,55 @@ import requests
 import threading
 import subprocess
 
+from iftranslator import OVSIFTranslator
 from datetime import datetime as dt
 
 from oscars_te.runnable import Runnable
 
 class Trigger(Runnable):
-    """Periodically monitor flows"""
+    """Periodically monitor events and parse flows"""
     def __init__(self):
         super(Trigger, self).__init__()
         self._events = []
-        
+        self._flows = []
+        self._switches = {}
+    
+    def getSwitches(self):
+        return self._switches
+
+    def addSwitch(self, sw_name, sw_info):
+        # self._switches[sw_name] = {
+        #  'address':0.0.0.0, 
+        #  'datapath': {
+        #    '<dpname>': {
+        #      '<port>' : {port_info}
+        #    },
+        #   'error': '<error message>'
+        #  }}
+        raise NotImplementedError
+
     def getEvents(self):
+        """
+        A Trigger Event happens when a policy is violated. For example,
+        if the bandwidth flowing through an interface exceeds a given 
+        threshold, an event should be generated
+        """
         return self._events
+
+    def registerEventListener(self):
+        raise NotImplementedError
 
     def addEvent(self, event):
         self._events = [event] + self._events
-
         
+    def getFlows(self):
+        """
+        Return a list of flows that associated with events 
+        """
+        return self._flows
+
     def actOnEvent(self):
         raise NotImplementedError
-        
 
 class SFlowCollector(Runnable):
     """SFlowCollector"""
@@ -53,16 +82,46 @@ class SFlowCollector(Runnable):
         self.terminate()
 
 class SFlowTrigger(Trigger):
-    """docstring for SFlowTrigger"""
+    """
+    SFlowTrigger uses SFlow-RT to collect and parse sflow frames
+    sent by switches.
+    """
     def __init__(self, collector_url, collector_path=''):
+        """
+        The constructor for SFlowTrigger receives two parameters that 
+        specify how to contact sflow-rt and another one (optional) 
+        that specify where sflow-rt is installed. The later is optional,
+        and if present SFlowTrigger will try to start the sflow-rt 
+        collector using the given path.
+        
+        :param collector_url: where sflow-rt rest interface is running
+        :param collector_path: 
+        """
         super(SFlowTrigger, self).__init__()
         
         self.setUrl(collector_url)
         
-        if len(collector_path):
+        if collector_path and len(collector_path) > 0:
             self.collector = SFlowCollector(collector_path)
         else:
             self.collector = None
+        
+        self.addSwitch('ovs', '127.0.0.1')
+
+    def addSwitch(self, sw_name, sw_address):
+        datapath = {}
+        error = ''
+        try:
+            datapath = OVSIFTranslator(sw_address)
+        except Exception, e:
+            sys.stderr.write(str(e))
+            error = str(e)
+        
+        self._switches[sw_name] = {
+            'address': sw_address,
+            'datapath': datapath,
+            'error': error
+        }
         
     def configureOVSSwitch(self):
         print 'sudo ovs-vsctl -- --id=@sflow create sflow agent=eth0 ' +\
@@ -72,7 +131,8 @@ class SFlowTrigger(Trigger):
     def registerLargeTCPEventListener(self, threshold_value=6000):
         flow = {
             'value':'frames',
-            'keys':'ipsource,ipdestination,tcpsourceport,tcpdestinationport'
+            'keys':'ipsource,ipdestination,tcpsourceport,tcpdestinationport',
+            'filter':'inputifindex=561'
         }
         threshold = {
             'metric': 'largeflow',
@@ -82,8 +142,24 @@ class SFlowTrigger(Trigger):
         
         self.registerFlow('largeflow', flow)
         self.registerThreshold('largeflow', threshold)
-        
     
+    def registerEventListener(self, name, keys, switch, datapath,
+                              port, metric, by_flow, threshold):
+        flow = {
+            'value': str(metric),
+            'keys': str(','.join(keys)),
+            'filter':'inputifindex=%d' % int(port)
+        }
+        th = {
+            'metric': str(name),
+            'value': int(threshold),
+            'byFlow': 'true' if by_flow else 'false'
+        }
+        sys.stderr.write('flow:' + str(flow) + '\n\n')
+        sys.stderr.write('th:' + str(th) + '\n\n')
+        self.registerFlow(str(name), flow)
+        self.registerThreshold(str(name), th)
+        
     def registerDefaultEventListener(self):
         """docstring for registerDefaultEventListener"""
         # Should we export this in the interface?
@@ -124,7 +200,6 @@ class SFlowTrigger(Trigger):
                         data=json.dumps(flow_description))
         sys.stderr.write(str(r) + '\n');
         
-        
     def setUrl(self, url): 
         host,port = (url,8008)
         if len(host.split(':')) > 1:
@@ -152,20 +227,15 @@ class SFlowTrigger(Trigger):
                 sys.stderr.write("Error, return code = %d\n" % r.status_code )
             return r.json()
         except Exception, e:
-            #traceback.print_stack()
             pass
         return ''
         
     def run(self):
         if self.collector:
             self.collector.start()
-            # give it sometime to start
-            # TODO: we should check if agent is up instead of waiting
-            # 2 seconds, because if it starts under load, it may not respond
-            self.waitInterruptible(2)
 
         maxTries = 10
-        while maxTries > 0:
+        while maxTries > 0 and not self.shouldStop():
             try:
                 sys.stderr.write('Registering default event listener...\n')
                 #self.registerDefaultEventListener()
@@ -174,12 +244,12 @@ class SFlowTrigger(Trigger):
             except:
                 self.waitInterruptible(2)
                 maxTries -= 1
-        if maxTries == 0:
-            self.collector.stop()
+        if maxTries == 0 or self.shouldStop():
             self.stop()
+            self.collector.stop()
             self.terminate()
-            raise Exception("Ops, something went wrong")
-        
+            return
+
         last_event_id = -1;
         while not self.shouldStop():
             self.waitInterruptible(1)
