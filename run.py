@@ -4,7 +4,6 @@ import argparse
 from oscars_te.monitor import FloodlightDefaultMonitor
 from oscars_te.trigger import SFlowTrigger
 from oscars_te import app
-from flask.ext.bootstrap import Bootstrap
 
 parser = argparse.ArgumentParser(description='OSCARS Traffic Engineering Application')
 
@@ -26,8 +25,6 @@ app.debug = False
 if args.debug:
     app.debug = True
 
-Bootstrap(app)
-
 app.config['controller'] = args.controller;
 app.config['oscars'] = args.oscars;
 app.config['trigger'] = args.trigger;
@@ -37,7 +34,6 @@ if app.debug == False \
     and len(app.config['controller']) > 0:
     app.config['controller_instance'] = \
         FloodlightDefaultMonitor(app.config['controller'])
-    sys.stderr.write('Starting Floodlight monitor...\n')
     app.config['controller_instance'].start()
 else:
     app.config['controller_instance'] = None;
