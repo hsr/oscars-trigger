@@ -6,24 +6,20 @@ from flask import render_template, session, request, \
 from oscars_te import app, db, lm, oid
 from flask.ext.login import login_user, logout_user, \
                             current_user, login_required
-# from flask.ext.wtf import Form, TextField, BooleanField
-# from flask.ext.wtf import Required
 
-
+# Forms
 from flask.ext.wtf import Form
-
 from wtforms import TextField, BooleanField
 from wtforms.validators import Required
 
-
 from oscars_te import config
 
+# Models
 from oscars_te.models import User, ROLE_USER, ROLE_ADMIN
 
 class LoginForm(Form):
     openid = TextField('openid', validators = [Required()])
     remember_me = BooleanField('remember_me', default = False)
-
 
 @app.before_request
 def before_request():
@@ -62,7 +58,10 @@ def after_login(resp):
         nickname = resp.nickname
         if nickname is None or nickname == "":
             nickname = resp.email.split('@')[0]
-        user = User(nickname = nickname, email = resp.email, role = ROLE_USER)
+        user = User(nickname = nickname, 
+                    email = resp.email, 
+                    role = ROLE_USER,
+                    openid = resp.identity_url)
         db.session.add(user)
         db.session.commit()
     remember_me = False
@@ -70,7 +69,7 @@ def after_login(resp):
         remember_me = session['remember_me']
         session.pop('remember_me', None)
     login_user(user, remember = remember_me)
-    flash('You were successfully logged in!')
+    flash('You were successfully logged in!','success')
     return redirect(request.args.get('next') or url_for('index'))
 
 @app.route('/logout')

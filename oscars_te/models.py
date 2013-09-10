@@ -5,8 +5,9 @@ ROLE_ADMIN = 1
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key = True)
-    nickname = db.Column(db.String(64), unique = True)
+    nickname = db.Column(db.String(64))
     email = db.Column(db.String(120), unique = True)
+    openid = db.Column(db.String(200))
     role = db.Column(db.SmallInteger, default = ROLE_USER)
     # posts = db.relationship('Post', backref = 'author', lazy = 'dynamic')
     # The is_authenticated method has a misleading name. In general this method
@@ -27,6 +28,9 @@ class User(db.Model):
 
     def get_id(self):
         return unicode(self.id)
+    
+    def is_admin(self):
+        return self.role == ROLE_ADMIN
 
     def __repr__(self):
         return '<User %r>' % (self.nickname)
