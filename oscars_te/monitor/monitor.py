@@ -11,7 +11,6 @@ class Monitor(Runnable):
     """Periodically monitor flows"""
     def __init__(self, interval = 5):
         super(Monitor, self).__init__()
-
         self.stats = []
         self.interval = float(interval)
 
@@ -37,18 +36,22 @@ class Monitor(Runnable):
             sys.stderr.write('Starting monitor...\n')
             while not self.shouldStop():
                 runTime = dt.now()
-                if len(self.stats) > 10:
-                    self.stats = self.stats[1:] + [self.requestStats()]
-                else:
-                    self.stats += [self.requestStats()]
+                try:
+                    if len(self.stats) > 10:
+                        self.stats = self.stats[1:] + [self.requestStats()]
+                    else:
+                        self.stats += [self.requestStats()]
+                except Exception, e:
+                    sys.stderr.write('%s\n' % str(e))
 
                 elapsed = dt.now() - runTime
                 seconds = float(elapsed.seconds - (elapsed.microseconds*1e-6))
                 wait4   = float(self.interval) - seconds
                 if wait4 < 0:
                     # TODO: replace by logger
-                    sys.stderr.write("Command is taking more than %f to execute!" % \
-                                    self.interval)
+                    sys.stderr.write(
+                        "Command is taking more than %f to execute!" % \
+                        self.interval)
                 else:
                     self.waitInterruptible(wait4)
         except:
@@ -76,6 +79,7 @@ class FloodlightFlowMonitor(FloodlightMonitor):
         super(FloodlightFlowMonitor, self).__init__(controller, interval)
 
     def requestStats(self):
+        response = '{}'
         url = "http://%s:%d/wm/core/switch/all/flow/json" % \
             (self.controller['host'], self.controller['port'])            
         try:
@@ -85,10 +89,11 @@ class FloodlightFlowMonitor(FloodlightMonitor):
         return response
         
 class FloodlightPortMonitor(FloodlightMonitor):
-    def __init__(self, controller, interval):
-        super(FloodlightFlowMonitor, self).__init__(controller, interval)
+    def __init__(self, controller='localhost', interval=4):
+        super(FloodlightPortMonitor, self).__init__(controller, interval)
 
     def requestStats(self):
+        response = '{}'
         url = "http://%s:%d/wm/core/switch/all/port/json" % \
             (self.controller['host'], self.controller['port'])            
         try:

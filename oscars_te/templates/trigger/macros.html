@@ -123,3 +123,82 @@
     </ul>
   {% endif %}
 {% endmacro %}
+
+
+
+{% macro render_data_table(title, header, data) %}
+<h3>{{title}}</h3>
+<table class="table" id="table">
+	<tr>
+		{% if header.has_key('id') %}
+			<th>{{header['id']}}</th>
+		{% endif %}
+		{% for key,value in header.iteritems() %}
+			{% if key != 'id' %}
+				<th>{{value}}</th>
+			{% endif %}
+		{% endfor %}
+	</tr>
+	{% for index,row in data.iteritems() %}
+	<tr>
+		{% if header.has_key('id') %}
+			<td>{{row['id']}}</td>
+		{% endif %}
+		
+		{% for key,value in header.iteritems() %}
+			{% if key != 'id' %}
+
+				<td>
+					{% if row[key] is sameas false or row[key] is sameas true %}
+						{% if row[key] is sameas true %}
+							<i class="icon-ok"></i>
+						{% else %}
+							<i class="icon-remove"></i>
+						{% endif %}
+					{% else %}
+						{{row[key]}}
+					{% endif %}
+				</td>
+			{% endif %}
+		{% endfor %}
+	</tr>
+	{% else %}
+	<tr><td colspan="{{header|length}}">No {{title|lower}} found</td></tr>
+	<tr><td colspan="{{header|length}}"></td></tr>
+	{% endfor %}
+</table>
+
+{% endmacro %}
+
+{% macro render_ordered_data_table(title, keys, headers, data) %}
+<h3>{{title}}</h3>
+<table class="table" id="table">
+	<tr>
+		{% for key in keys %}
+			<th>{{headers[loop.index0]|safe}}</th>
+		{% endfor %}
+	</tr>
+	{% for index,row in data.iteritems() %}
+	<tr>
+		{% for key in keys %}
+			<td>
+				{% if row[key] is sameas false or row[key] is sameas true %}
+					{% if row[key] is sameas true %}
+						<i class="icon-ok"></i>
+					{% else %}
+						<i class="icon-remove"></i>
+					{% endif %}
+				{% else %}
+					{{row[key]}}
+				{% endif %}
+			</td>
+		{% endfor %}
+	</tr>
+	{% else %}
+	<tr><td colspan="{{headers|length}}">No {{title|lower}} found</td></tr>
+	<tr><td colspan="{{headers|length}}"></td></tr>
+	{% endfor %}
+</table>
+
+{% endmacro %}
+
