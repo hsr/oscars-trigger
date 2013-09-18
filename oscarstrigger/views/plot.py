@@ -1,4 +1,4 @@
-from oscars_te import app, communicator
+from oscarstrigger import app, communicator
 
 from flask import Blueprint, render_template, request
 

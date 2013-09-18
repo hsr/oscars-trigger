@@ -1,4 +1,4 @@
-from oscars_te import db
+from oscarstrigger import db
 
 ROLE_USER = 0
 ROLE_ADMIN = 1

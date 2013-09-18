@@ -13,9 +13,9 @@ from iftranslator import shellquote
 from iftranslator import OVSIFTranslator
 from datetime import datetime as dt
 
-from oscars_te.runnable import Runnable
+from oscarstrigger.runnable import Runnable
 
-from oscars_te import app
+from oscarstrigger import app
 log = app.logger
 
 def movingAverage(a, b, weight=.5):

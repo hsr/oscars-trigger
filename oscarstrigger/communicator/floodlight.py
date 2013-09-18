@@ -36,7 +36,7 @@ def update_topology_file(controller):
     except Exception, e:
         raise e
     
-    topology_file = open('oscars_te/data/topology.json', 'w');
+    topology_file = open('oscarstrigger/data/topology.json', 'w');
     try:
         topology_file.write(floodlightTopology)
         topology_file.close()

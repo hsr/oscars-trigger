@@ -3,8 +3,8 @@ import sys
 from flask import Blueprint, render_template, abort, request, \
                     url_for, flash, jsonify, redirect, g
 from flask.ext.login import login_user, logout_user, current_user, login_required
-from oscars_te.trigger import SFlowTrigger, FloodlightTrigger
-from oscars_te import app, Pagination, lm
+from oscarstrigger.trigger import SFlowTrigger, FloodlightTrigger
+from oscarstrigger import app, Pagination, lm
 
 
 # Forms
@@ -14,7 +14,7 @@ from wtforms import TextField, BooleanField, SelectMultipleField, \
 from wtforms.validators import Required, IPAddress, NumberRange, \
                     ValidationError
                     
-from oscars_te import app
+from oscarstrigger import app
 log = app.logger
 
 bp = Blueprint('trigger', __name__, url_prefix='/trigger')

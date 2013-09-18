@@ -1,7 +1,7 @@
 import sys
-from oscars_te.monitor import FloodlightMonitor
+from oscarstrigger.monitor import FloodlightMonitor
 import json
-from oscars_te import app
+from oscarstrigger import app
 from flask import Blueprint, render_template, Response, jsonify
 
 bp = Blueprint('monitor', __name__, url_prefix='/monitor')

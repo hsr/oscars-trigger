@@ -21,15 +21,15 @@ lm.init_app(app)
 db = SQLAlchemy(app)
 
 # Blueprints
-from oscars_te.views import data
-from oscars_te.views import monitor
-from oscars_te.views import plot
-from oscars_te.views import trigger
+from oscarstrigger.views import data
+from oscarstrigger.views import monitor
+from oscarstrigger.views import plot
+from oscarstrigger.views import trigger
 
 app.register_blueprint(data.bp)
 app.register_blueprint(monitor.bp)
 app.register_blueprint(plot.bp)
 app.register_blueprint(trigger.bp)
 
-from oscars_te.views import base
-from oscars_te.views import auth
+from oscarstrigger.views import base
+from oscarstrigger.views import auth

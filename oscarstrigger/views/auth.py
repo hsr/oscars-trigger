@@ -3,7 +3,7 @@ import pprint
 
 from flask import render_template, session, request, \
                   url_for, redirect, flash, g
-from oscars_te import app, db, lm, oid
+from oscarstrigger import app, db, lm, oid
 from flask.ext.login import login_user, logout_user, \
                             current_user, login_required
 
@@ -12,10 +12,10 @@ from flask.ext.wtf import Form
 from wtforms import TextField, BooleanField
 from wtforms.validators import Required
 
-from oscars_te import config
+import config
 
 # Models
-from oscars_te.models import User, ROLE_USER, ROLE_ADMIN
+from oscarstrigger.models import User, ROLE_USER, ROLE_ADMIN
 
 class LoginForm(Form):
     openid = TextField('openid', validators = [Required()])

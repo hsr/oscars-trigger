@@ -150,7 +150,7 @@ def update_active_circuits_file(oscarsdb='localhost'):
     except Exception, e:
         raise Exception(e)
 
-    circuits_filename = 'oscars_te/data/circuits.json'
+    circuits_filename = 'oscarstrigger/data/circuits.json'
     try:
         circuits_file = open(circuits_filename, 'w');
     except Exception, e:

@@ -1,9 +1,9 @@
 import sys
 import argparse
 
-from oscars_te.monitor import FloodlightDefaultMonitor
-from oscars_te.trigger import SFlowTrigger, HostTrigger, FloodlightTrigger
-from oscars_te import app
+from oscarstrigger.monitor import FloodlightDefaultMonitor
+from oscarstrigger.trigger import SFlowTrigger, HostTrigger, FloodlightTrigger
+from oscarstrigger import app
 
 parser = argparse.ArgumentParser(description='OSCARS Traffic Engineering Application')
 

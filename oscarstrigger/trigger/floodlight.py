@@ -4,13 +4,13 @@ import socket
 import requests
 import pprint
 
-from oscars_te.monitor import FloodlightPortMonitor
-from oscars_te.trigger import Trigger
-from oscars_te.trigger import movingAverage
+from oscarstrigger.monitor import FloodlightPortMonitor
+from oscarstrigger.trigger import Trigger
+from oscarstrigger.trigger import movingAverage
 
-from oscars_te.communicator import oscars
+from oscarstrigger.communicator import oscars
 
-from oscars_te import app
+from oscarstrigger import app
 log = app.logger
 
 

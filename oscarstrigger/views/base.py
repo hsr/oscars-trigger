@@ -1,7 +1,7 @@
 import sys
 from flask import abort, render_template, jsonify
 from jinja2 import TemplateNotFound
-from oscars_te import app
+from oscarstrigger import app
 
 
 @app.errorhandler(500)

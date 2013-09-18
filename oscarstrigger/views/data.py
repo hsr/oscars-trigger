@@ -1,4 +1,4 @@
-from oscars_te import communicator
+from oscarstrigger import communicator
 from flask import Blueprint, render_template, Response, request, send_file
 
 bp = Blueprint('data', __name__, url_prefix='/data')
