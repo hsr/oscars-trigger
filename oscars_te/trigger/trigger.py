@@ -13,15 +13,21 @@ from iftranslator import shellquote
 from iftranslator import OVSIFTranslator
 from datetime import datetime as dt
 
-from oscars_te.communicator import oscars
 from oscars_te.runnable import Runnable
-from oscars_te.monitor import FloodlightPortMonitor, FloodlightFlowMonitor
 
 from oscars_te import app
 log = app.logger
 
-def updateMovingAverage(a, b, weight=.5):
-    return (a[0]*weight+b[0]*(1-weight),a[1]*weight+b[1]*(1-weight))
+def movingAverage(a, b, weight=.5):
+    """
+    Given two tuples with 2 values each (for TX and RX), return the weighted
+    average of these numbers.
+    
+    :param a: tuple with two values (for TX and RX)
+    :param b: tuple with two values (for TX and RX)
+    :param weight: weight for b (1-weight for a)
+    """
+    return (a[0]*(1.-weight)+b[0]*weight,a[1]*(1.-weight)+b[1]*weight)
 
 class Trigger(Runnable):
     """Periodically monitor events and parse flows"""
@@ -373,229 +379,3 @@ class HostTrigger(Trigger):
 
 
 
-class FloodlightTrigger(FloodlightPortMonitor, Trigger):
-    """
-    FloodlightTrigger
-    
-    This trigger monitors net device ports periodically and
-    generate events when the threshold of event listeners are
-    reached. Event listeners identify src and dst device and port,
-    and could be configured to act (offload) the circuit 
-    automatically. 
-    """
-    def __init__(self, controller_url, interval = 2, oscars_url=None):
-        """
-        :param controller_url: Floodlight controller url
-        :param oscars_url: (optional) OSCARS database url. 
-            NOTE that the OSCARS communicator will try to open a connection
-            to OSCARS's mysql database with the username 'reader' and
-            password 'reader'. Change this in the root config.py file
-        :param interval: how frequently stats will be fetched from Floodlight
-        """
-        super(FloodlightTrigger, self).__init__(controller_url, interval)
-        self._triggers = {};
-        self.setOscarsURL(oscars_url)
-        # self.registerEventListener(
-        #     '00:00:00:00:00:00:00:01', '2', 1e3,
-        #     '00:00:00:00:00:00:00:07', '2')
-    
-    def setOscarsURL(self, oscars_url):
-        self._oscars_sync = 0; # to sync OSCARS circuits and event listeners
-        self._oscars = None
-        if not oscars_url:
-            return;
-        
-        host,port = (oscars_url,3306)
-        if len(host.split(':')) > 1:
-            host = host.split(':')[0]
-
-        try:
-            host = socket.gethostbyname(host)
-            self._oscars = dict(host=str(host),port=int(port))
-            log.debug('Setting oscars_url to %s\n' % str(self._oscars))
-        except Exception:
-            raise Exception('Could not resolve oscars hostname.')
-    
-    def registerEventListener(self, sw_src_dpid, sw_src_port, threshold, sw_dst_dpid='', sw_dst_port=0, act = False, trigger_id=None):
-        """
-        Register an event listener with id = <sw_src_dpid>.<sw_src_port>.
-        :param sw_src_dpid: Source node that the listener will monitor
-        :param sw_src_port: Source port that the listener will monitor
-        :param threshold: Threshold to generate an event
-        :param sw_dst_dpid: Destination node to use when acting. 
-                            The current action is to request OSCARS's a new
-                            circuit with 10.5 times the configured threshold
-        :param sw_dst_port: Destination port to use when acting.
-        :param act: True if trigger is supposed to act automatically
-        """
-        if not trigger_id:
-            trigger_id = '%s.%s' % (sw_src_dpid, sw_src_port)
-
-        self._triggers[trigger_id] = {
-            'id': trigger_id,
-            'sw_src_dpid': sw_src_dpid,
-            'sw_src_port': int(sw_src_port),
-            'sw_dst_dpid': sw_dst_dpid,
-            'sw_dst_port': int(sw_dst_port),
-            'stats' : [],
-            'bandwidth': (0,0), #moving average
-            'threshold': int(threshold),
-            'act': act,
-            'error':''}
-            
-    def deleteEventListener(self, trigger_id):
-        try:
-            del self._triggers[trigger_id];
-            del self._events[trigger_id];
-        except:
-            pass
-
-    def actOnEvent(self, trigger_id):
-        event = self._triggers[trigger_id]
-        
-        response = '{}'
-        url = "http://%s:%d/create" % \
-            (self._oscars['host'], self._oscars['port'])
-        try:
-            request = {
-                'src-switch': event['sw_src_dpid'],
-                'dst-switch': event['sw_dst_dpid'],
-                'src-port': event['sw_src_port'],
-                'dst-port': event['sw_dst_port'],
-                'ofrule': 'dl_type=0x800',
-                'bandwidth': event['threshold']*10.5,
-                }
-            response = requests.post(url, timeout=10).read();
-            
-        except Exception, e:
-            raise Exception('Could not issue request: %s ' % e.message)
-        return response
-
-    def syncOSCARSEventListeners(self):
-        """
-        Creates one event listener (trigger) for each OSCARS circuit using
-        OSCARS circuits' end points
-        """
-        circuits = {}
-        try:
-            oscarsdb = '%s:%d' % (self._oscars['host'],self._oscars['port'])
-            circuits = oscars.get_circuits_by_status(oscarsdb=oscarsdb);
-        except Exception, e:
-            log.warning('Could not fetch OSCARS circuits: %s\n' % str(e));
-            pass
-        
-        log.debug('Trigger: fetched %d circuits form OSCARS\n' % len(circuits))
-        
-        active_ids = []
-        sync_id = 0;
-        for id, circuit in circuits.iteritems():
-            # Only add event listener for circuits not seen before
-            trigger_id = 'O.%s.%s' % \
-                (circuit['hops'][0]['node'],circuit['hops'][0]['port'])
-            active_ids += [trigger_id]
-            
-            if (self._oscars_sync < int(id)):
-                if not self._triggers.has_key(trigger_id):
-                    n_hops = len(circuit['hops'])
-                    
-                    log.debug("Registering new circuit %s.%s->%s.%s\n" %\
-                    (
-                        str(circuit['hops'][0]['node']),
-                        str(circuit['hops'][0]['port']),
-                        str(circuit['hops'][n_hops-1]['node']),
-                        str(circuit['hops'][n_hops-1]['port'])
-                    ))
-                    
-                    self.registerEventListener(
-                        circuit['hops'][0]['node'],
-                        circuit['hops'][0]['port'],
-                        int(circuit['bandwidth'] * .5),
-                        circuit['hops'][n_hops-1]['node'],
-                        circuit['hops'][n_hops-1]['port'],
-                        act=True,
-                        trigger_id=trigger_id)
-
-                sync_id = max(sync_id,int(id))
-        # end for
-        
-        # Only sync
-        self._oscars_sync = \
-            max(sync_id, self._oscars_sync)
-            
-        # Delete event listener related to finished/cancelled circuits
-        for trigger_id in self._triggers.keys():
-            if trigger_id[0] == 'O' and trigger_id not in active_ids:
-                log.debug('Removing %s\n'  % trigger_id)
-                del self._triggers[trigger_id]
-
-    def getRegisteredEvents(self):
-        return self._triggers
-        
-    def requestStats(self):
-        raw_stats  = super(FloodlightTrigger,self).requestStats()
-        json_stats = json.loads(raw_stats)
-        
-        if self._oscars:
-            self.syncOSCARSEventListeners()
-        
-        for trigger_id, trigger_info in self._triggers.items():
-            trigger_dpid  = trigger_info['sw_src_dpid']
-            trigger_port  = trigger_info['sw_src_port']
-            trigger_stats = trigger_info['stats']
-
-            if json_stats.has_key(trigger_dpid):
-                for port in json_stats[trigger_dpid]:
-                    if port['portNumber'] == trigger_port:
-                        stats = (port['receiveBytes'], port['transmitBytes'])
-
-                        if len(trigger_stats):
-                            prev = (trigger_stats[-1])
-                        else:
-                            prev = stats
-
-                        current_bw = (stats[0]-prev[0],stats[1]-prev[1])
-
-                        if len(stats) > 10:
-                            trigger_stats = trigger_stats[:-1] + [current_bw]
-                        else:
-                            trigger_stats += [current_bw]
-
-                        trigger_info['bandwidth'] = updateMovingAverage(
-                            trigger_info['bandwidth'], current_bw
-                        )
-
-            event = None
-            if trigger_info['bandwidth'][0] > trigger_info['threshold']:
-                event = {
-                    "id": trigger_id,
-                    "agent": trigger_info['sw_src_dpid'],
-                    "flowKey": '%s,%s,%s,%s' % (
-                        trigger_info['sw_src_dpid'],
-                        trigger_info['sw_src_port'],
-                        trigger_info['sw_dst_dpid'],
-                        trigger_info['sw_dst_port']),
-                    "value": int(trigger_info['bandwidth'][0])
-                }
-
-            if trigger_info['bandwidth'][1] > trigger_info['threshold']:
-                # log.debug('TX Exceeded %s > %s\n' % \
-                #     (trigger_info['bandwidth'][1], trigger_info['threshold']))
-                
-                event = {
-                    "id": trigger_id,
-                    "agent": trigger_info['sw_src_dpid'],
-                    "flowKey": '%s,%s,%s,%s' % (
-                        trigger_info['sw_src_dpid'],
-                        trigger_info['sw_src_port'],
-                        trigger_info['sw_dst_dpid'],
-                        trigger_info['sw_dst_port']),
-                    "value": int(trigger_info['bandwidth'][1])
-                }
-            if event:
-                if trigger_info['act'] == True:
-                    log.info('Act on event %s\n' % str(event))
-                self.addEvent(event)
-        # end for
-                
-        return raw_stats
-    

@@ -40,7 +40,7 @@ render_control_field, render_field, render_ordered_data_table, render_data_table
 
 {{ render_ordered_data_table(
 	'Triggers',
-	['id','sw_src_dpid','sw_src_port','sw_dst_dpid','sw_dst_port','threshold','act'],
+	['id','src_dpid','src_port','dst_dpid','dst_port','threshold','act'],
 	['ID','Source DPID','Source Port','Destination DPID','Destination Port','Threshold','Auto'],
 	revents)
 }}
@@ -48,10 +48,10 @@ render_control_field, render_field, render_ordered_data_table, render_data_table
 {#
 	{{ render_data_table(' Triggers', {
 		'id':'ID',
-		'sw_src_dpid':'Source DPID',
-		'sw_src_port':'Source Port',
-		'sw_dst_dpid':'Destination DPID',
-		'sw_dst_port':'Destination Port',
+		'src_dpid':'Source DPID',
+		'src_port':'Source Port',
+		'dst_dpid':'Destination DPID',
+		'dst_port':'Destination Port',
 		'act':'Auto',
 		},
 		revents)
@@ -64,10 +64,10 @@ render_control_field, render_field, render_ordered_data_table, render_data_table
 	<h4>Add a new event</h4>
 	<form class="form-horizontal" method="post">
 	    {{form.hidden_tag()}}
-		{{render_control_field(form.sw_src_dpid)}}
-		{{render_control_field(form.sw_src_port)}}
-		{{render_control_field(form.sw_dst_dpid)}}
-		{{render_control_field(form.sw_dst_port)}}
+		{{render_control_field(form.src_dpid)}}
+		{{render_control_field(form.src_port)}}
+		{{render_control_field(form.dst_dpid)}}
+		{{render_control_field(form.dst_port)}}
 		{{render_control_field(form.threshold)}}
 		{{render_control_field(form.act)}}
 		<button type="submit" class="btn">Add</button>

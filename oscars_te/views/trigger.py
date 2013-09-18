@@ -13,6 +13,9 @@ from wtforms import TextField, BooleanField, SelectMultipleField, \
                     SelectField
 from wtforms.validators import Required, IPAddress, NumberRange, \
                     ValidationError
+                    
+from oscars_te import app
+log = app.logger
 
 bp = Blueprint('trigger', __name__, url_prefix='/trigger')
 
@@ -33,7 +36,7 @@ def default(switch=None):
     #     if isinstance(app.config['trigger_instance'], FloodlightMonitor):
     #         stats = app.config['trigger_istance'].
     # except Exception, e:
-    #     sys.stderr.write('Error:' + str(e.message))
+    #     log.debug('Error:' + str(e.message))
     #     raise e
     return render_template('about.html');
 
@@ -140,20 +143,20 @@ class SFlowEventForm(Form):
             raise ValidationError(message % (switch_datapath,switch_name))
             
 class FloodlightEventForm(Form):
-    sw_src_dpid = TextField(
+    src_dpid = TextField(
         'Source DPID', 
         validators = [Required()]
     )
-    sw_src_port = TextField(
+    src_port = TextField(
         'Source Port', 
         validators = [Required()]
     )
     
-    sw_dst_dpid = TextField(
+    dst_dpid = TextField(
         'Destination DPID',
         validators = [Required()]
     )
-    sw_dst_port = TextField(
+    dst_port = TextField(
         'Destination Port',
         validators = [Required()]
     )
@@ -183,11 +186,11 @@ def events(page):
             if trigger:
                 if isinstance(trigger, FloodlightTrigger):
                     trigger.registerEventListener(
-                        form.sw_src_dpid.data,
-                        form.sw_src_port.data,
+                        form.src_dpid.data,
+                        form.src_port.data,
                         form.threshold.data,
-                        form.sw_dst_dpid.data,
-                        form.sw_dst_port.data,
+                        form.dst_dpid.data,
+                        form.dst_port.data,
                         form.act.data
                     )
                 else: #elif isinstance(trigger, SFlowTrigger):
@@ -230,16 +233,18 @@ def events(page):
 @bp.route('/events/offload/<event_id>')
 @login_required
 def offload(event_id):
-    events = get_events(get_trigger())
+    trigger = get_trigger()
+    events = get_events(trigger)
     if not g.user.is_admin():
         flash('Only admins can take that action!', 'error')
         return redirect(url_for('trigger.events'))
     
     for event in events:
         if event_id == event['id']:
-            sys.stderr.write('Offloading %s\n' % str(event))
+            log.info('Offloading %s\n' % str(event))
             flash('Offloading %s' % event_id, 'success')
-            
+            if isinstance(trigger, FloodlightTrigger):
+                trigger.actOnEvent(event_id)
             return redirect(url_for('trigger.events'))
 
     flash('Event %s not found!' % event_id, 'error')
@@ -256,7 +261,7 @@ def delete_event(event_id):
     
     # for event in events:
     #     if event_id == event['id']:
-    sys.stderr.write('Deleting %s\n' % str(event_id))
+    log.info('Deleting %s\n' % str(event_id))
     if isinstance(trigger, FloodlightTrigger):
         trigger.deleteEventListener(event_id)
         flash('Event listener %s deleted!' % event_id, 'success')
@@ -329,6 +334,6 @@ def switches(switch=None):
         
 @bp.route('/json/switches')
 def json_switches():
-    sys.stderr.write(str(get_switches(get_trigger()))+'\n')
+    log.debug(str(get_switches(get_trigger()))+'\n')
     return jsonify(get_switches(get_trigger()))
     
