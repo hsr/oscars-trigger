@@ -19,7 +19,7 @@ def get_topology(controller='localhost'):
     
     url = "http://%s:%s/wm/topology/links/json" % (host,port)
     try:
-        response = urllib2.urlopen(url, timeout=3).read();
+        response = urllib2.urlopen(url, timeout=4).read();
         if len(response):
             return response
     except Exception, e:
