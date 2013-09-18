@@ -18,9 +18,9 @@
 				  <i class="icon-eye-open"></i>&nbsp;Trigger
 				  <span class="caret"></span>
 		          <ul class="dropdown-menu" role="menu">
-		            <li><a href="/trigger/flows">Flows</a></li>
+		            <li class="disabled"><a href="#">Flows</a></li>
 		            <li><a href="/trigger/events">Events</a></li>
-		            <li><a href="/trigger/switches">Switches</a></li>
+		            <li class="disabled"><a href="#">Switches</a></li>
 		          </ul>
 			  </a>
 		  </li>
@@ -29,8 +29,9 @@
 				  <i class="icon-question-sign"></i>&nbsp;About
 			  </a>
 		  </li>
-	  	</ul>
+	    </ul>
 		<!-- SIGN IN NAV -->
+		{% if '/login' not in request.path %}
 	  	<ul class="nav pull-right">
 		  <li class="dropdown">
 			  {% if not g.user.is_authenticated() %}
@@ -69,13 +70,14 @@
               </div>
 			  {% else %}
 	          <li>
-				  <a href="/logout">
+				  <a href="/logout?next={{request.path}}">
 					  Logout&nbsp;<i class="icon-off"></i>
 				  </a>
 			  </li>
 			  {% endif %}
 		  </li>
         </ul>
+		{% endif %}
 		<!-- END SIGN IN NAV -->
     </div>
   </div>

@@ -22,7 +22,7 @@ function set_openid(openid, pr)
         Please enter your OpenID, or select one of the providers below:<br>
         {{g.authform.openid(size=80)}}
         {% for error in g.authform.errors.openid %}
-        <span style="color: red;">[{{error}}]</span>
+        <span style="color: red;">{{error}}</span>
         {% endfor %}<br>
         |{% for pr in g.authproviders %}
         <a href="javascript:set_openid('{{pr.url}}', '{{pr.name}}');">{{pr.name}}</a> |

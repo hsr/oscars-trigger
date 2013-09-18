@@ -1,10 +1,10 @@
 import json
 import sys
 from flask import Blueprint, render_template, abort, request, \
-                    url_for, flash, jsonify, redirect
+                    url_for, flash, jsonify, redirect, g
 from flask.ext.login import login_user, logout_user, current_user, login_required
-from oscars_te.trigger import SFlowTrigger
-from oscars_te import app, Pagination
+from oscars_te.trigger import SFlowTrigger, FloodlightTrigger
+from oscars_te import app, Pagination, lm
 
 
 # Forms
@@ -13,6 +13,9 @@ from wtforms import TextField, BooleanField, SelectMultipleField, \
                     SelectField
 from wtforms.validators import Required, IPAddress, NumberRange, \
                     ValidationError
+                    
+from oscars_te import app
+log = app.logger
 
 bp = Blueprint('trigger', __name__, url_prefix='/trigger')
 
@@ -33,13 +36,15 @@ def default(switch=None):
     #     if isinstance(app.config['trigger_instance'], FloodlightMonitor):
     #         stats = app.config['trigger_istance'].
     # except Exception, e:
-    #     sys.stderr.write('Error:' + str(e.message))
+    #     log.debug('Error:' + str(e.message))
     #     raise e
     return render_template('about.html');
 
 def get_trigger():
     try:
         if isinstance(app.config['trigger_instance'], SFlowTrigger):
+            return app.config['trigger_instance']
+        elif isinstance(app.config['trigger_instance'], FloodlightTrigger):
             return app.config['trigger_instance']
         #raise Exception()
     except:
@@ -58,22 +63,22 @@ def get_events(trigger=None):
     events = []
     if app.debug:
         events = json.loads(
-        '[{"eventID":1,"agent":"bla","flowKey":"ble", "value":30},\
-          {"eventID":2,"agent":"bla","flowKey":"ble", "value":30},\
-          {"eventID":3,"agent":"bla","flowKey":"ble", "value":30},\
-          {"eventID":4,"agent":"bla","flowKey":"ble", "value":30},\
-          {"eventID":5,"agent":"bla","flowKey":"ble", "value":30},\
-          {"eventID":6,"agent":"bla","flowKey":"ble", "value":30},\
-          {"eventID":7,"agent":"bla","flowKey":"ble", "value":30},\
-          {"eventID":8,"agent":"bla","flowKey":"ble", "value":30},\
-          {"eventID":8,"agent":"bla","flowKey":"ble", "value":30},\
-          {"eventID":9,"agent":"bla","flowKey":"ble", "value":30},\
-          {"eventID":0,"agent":"bla","flowKey":"ble", "value":30}]')
+        '[{"id":1,"agent":"bla","flowKey":"ble", "value":30},\
+          {"id":2,"agent":"bla","flowKey":"ble", "value":30},\
+          {"id":3,"agent":"bla","flowKey":"ble", "value":30},\
+          {"id":4,"agent":"bla","flowKey":"ble", "value":30},\
+          {"id":5,"agent":"bla","flowKey":"ble", "value":30},\
+          {"id":6,"agent":"bla","flowKey":"ble", "value":30},\
+          {"id":7,"agent":"bla","flowKey":"ble", "value":30},\
+          {"id":8,"agent":"bla","flowKey":"ble", "value":30},\
+          {"id":8,"agent":"bla","flowKey":"ble", "value":30},\
+          {"id":9,"agent":"bla","flowKey":"ble", "value":30},\
+          {"id":0,"agent":"bla","flowKey":"ble", "value":30}]')
     if trigger:
-        events = trigger.getEvents()
+        events = trigger.getEvents().values()
     return events
 
-class EventForm(Form):
+class SFlowEventForm(Form):
     name = TextField('Event Name', validators = [Required()])
     keys = SelectMultipleField(
         'Event Keys', 
@@ -106,7 +111,7 @@ class EventForm(Form):
         validators = [Required(),NumberRange(min=1)]
     )
     def __init__(self, **kwargs):
-        super(EventForm, self).__init__(**kwargs)
+        super(SFlowEventForm, self).__init__(**kwargs)
         self._switches = get_switches(get_trigger())
 
     def validate_port(form, field):
@@ -122,7 +127,6 @@ class EventForm(Form):
             raise ValidationError(message % (switch_port,switch_datapath))
             
     def validate_switch(form, field):
-
         message = "Switch %s not found"
         switch_name = field.data
         switches = form._switches
@@ -137,37 +141,81 @@ class EventForm(Form):
         if not switches.has_key(switch_name) or \
            not switches[switch_name]['datapath'].has_key(switch_datapath):
             raise ValidationError(message % (switch_datapath,switch_name))
-
+            
+class FloodlightEventForm(Form):
+    src_dpid = TextField(
+        'Source DPID', 
+        validators = [Required()]
+    )
+    src_port = TextField(
+        'Source Port', 
+        validators = [Required()]
+    )
+    
+    dst_dpid = TextField(
+        'Destination DPID',
+        validators = [Required()]
+    )
+    dst_port = TextField(
+        'Destination Port',
+        validators = [Required()]
+    )
+    threshold = TextField(
+        'Threshold',
+        validators = [Required(),NumberRange(min=1)]
+    )
+    act = BooleanField('Offload automatically')
+    
+    def __init__(self, **kwargs):
+        super(FloodlightEventForm, self).__init__(**kwargs)
 
 
 @bp.route('/events', defaults={'page': 1}, methods=['GET', 'POST'])
 @bp.route('/events/page/<int:page>')
 def events(page):
-    form = EventForm()
     trigger = get_trigger()
+    if isinstance(trigger, FloodlightTrigger):
+        form = FloodlightEventForm()
+        template = 'trigger/floodlight_events.html'
+    else: # if isinstance(trigger, SFlowTrigger):
+        form = SFlowEventForm()
+        template = 'trigger/events.html'
     
     if form.validate_on_submit():
         try:
             if trigger:
-                trigger.registerEventListener(
-                    form.name.data,
-                    form.keys.data,
-                    form.switch.data,
-                    form.datapath.data,
-                    form.port.data,
-                    form.metric.data,
-                    form.by_flow.data,
-                    form.threshold.data
-                )
-                flash('Validates!', 'success')
-                redirect(url_for('trigger.events'))
+                if isinstance(trigger, FloodlightTrigger):
+                    trigger.registerEventListener(
+                        form.src_dpid.data,
+                        form.src_port.data,
+                        form.threshold.data,
+                        form.dst_dpid.data,
+                        form.dst_port.data,
+                        form.act.data
+                    )
+                else: #elif isinstance(trigger, SFlowTrigger):
+                    trigger.registerEventListener(
+                        form.name.data,
+                        form.keys.data,
+                        form.switch.data,
+                        form.datapath.data,
+                        form.port.data,
+                        form.metric.data,
+                        form.by_flow.data,
+                        form.threshold.data
+                    )
+                flash('Event added!', 'success')
+            return redirect(url_for('trigger.events'))
         except Exception, e:
             flash(str(e), 'error')
     elif form.is_submitted():
         flash('Invalid data. Please check the values provided', 'error')
-        flash(str(form.errors))
+        # flash(str(form.errors))
     
-    events = get_events(get_trigger())
+    revents = {}
+    if trigger:
+        revents = trigger.getRegisteredEvents()
+    events = get_events(trigger)
     count = len(events)
     start = (page-1)*PER_PAGE
     end   = start + PER_PAGE if (start + PER_PAGE) < count else count
@@ -175,10 +223,56 @@ def events(page):
     if not events and page != 1:
         abort(404)
     pagination = Pagination(page, PER_PAGE, count)
-    return render_template('trigger/events.html',
+    
+    return render_template(template,
         pagination=pagination,
         events=events,
+        revents=revents,
         form=form)
+
+@bp.route('/events/offload/<event_id>')
+@login_required
+def offload(event_id):
+    trigger = get_trigger()
+    events = get_events(trigger)
+    if not g.user.is_admin():
+        flash('Only admins can take that action!', 'error')
+        return redirect(url_for('trigger.events'))
+    
+    for event in events:
+        if event_id == event['id']:
+            log.info('Offloading %s\n' % str(event))
+            flash('Offloading %s' % event_id, 'success')
+            if isinstance(trigger, FloodlightTrigger):
+                trigger.actOnEvent(event_id)
+            return redirect(url_for('trigger.events'))
+
+    flash('Event %s not found!' % event_id, 'error')
+    return redirect(url_for('trigger.events'))
+
+@bp.route('/events/delete/<event_id>')
+@login_required
+def delete_event(event_id):
+    trigger = get_trigger();
+    
+    if not g.user.is_admin():
+        flash('Only admins can take that action!', 'error')
+        return redirect(url_for('trigger.events'))
+    
+    # for event in events:
+    #     if event_id == event['id']:
+    log.info('Deleting %s\n' % str(event_id))
+    if isinstance(trigger, FloodlightTrigger):
+        trigger.deleteEventListener(event_id)
+        flash('Event listener %s deleted!' % event_id, 'success')
+        return redirect(url_for('trigger.events'))
+    else:
+        flash('Trigger not available!', 'error')
+        return redirect(url_for('trigger.events'))
+            
+
+    flash('Event listener %s not found!' % event_id, 'error')
+    return redirect(url_for('trigger.events'))
 
 @bp.route('/json/events', defaults={'page': 1})
 @bp.route('/json/events/page/<int:page>')
@@ -240,6 +334,6 @@ def switches(switch=None):
         
 @bp.route('/json/switches')
 def json_switches():
-    sys.stderr.write(str(get_switches(get_trigger()))+'\n')
+    log.debug(str(get_switches(get_trigger()))+'\n')
     return jsonify(get_switches(get_trigger()))
     

@@ -10,3 +10,7 @@ OPENID_PROVIDERS = [
     
 SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db')
 SQLALCHEMY_MIGRATE_REPO = os.path.join(basedir, 'db_repository') 
+
+
+OSCARS_MYSQL_USERNAME ='reader'
+OSCARS_MYSQL_PASSWORD ='reader'

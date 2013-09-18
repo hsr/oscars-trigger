@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+
+{%block main_content%}
+
+<h3>Events</h3>
+<table class="table table-striped" id="table">
+	<tr>
+		<th>ID</th>
+		<th>Switch</th>
+		<th>Flow</th>
+		<th>Value</th>
+		{% if g.user.is_authenticated() and g.user.is_admin() %}
+		<th>Act</th>
+		{% endif %}
+	</tr>
+	{% for event in events %}
+	<tr>
+		<td>{{event.id}}</td>
+		<td>{{event.agent}}</td>
+		<td>{{event.flowKey}}</td>
+		<td>{{event.value}}</td>
+		{% if g.user.is_authenticated() and g.user.is_admin() %}
+		<td>
+			<a href="/trigger/events/offload/{{event.id}}">
+				<i class="icon-random"></i>
+			</a>
+		</td>
+		{% endif %}
+	</tr>
+	{% else %}
+	<tr><td colspan="5">No events</td></tr>
+	<tr><td colspan="5"></td></tr>
+	{% endfor %}
+</table>
+
+{% from "trigger/macros.html" import render_pagination, render_inline_field, 
+render_control_field, render_field, render_ordered_data_table, render_data_table %}
+
+{{render_pagination(pagination)}}
+
+{{ render_ordered_data_table(
+	'Triggers',
+	['id','src_dpid','src_port','dst_dpid','dst_port','threshold','act'],
+	['ID','Source DPID','Source Port','Destination DPID','Destination Port','Threshold','Auto'],
+	revents)
+}}
+
+{#
+	{{ render_data_table(' Triggers', {
+		'id':'ID',
+		'src_dpid':'Source DPID',
+		'src_port':'Source Port',
+		'dst_dpid':'Destination DPID',
+		'dst_port':'Destination Port',
+		'act':'Auto',
+		},
+		revents)
+	}}
+#}
+
+{% if g.user.is_authenticated() and g.user.is_admin() %}
+
+<div class="well">
+	<h4>Add a new event</h4>
+	<form class="form-horizontal" method="post">
+	    {{form.hidden_tag()}}
+		{{render_control_field(form.src_dpid)}}
+		{{render_control_field(form.src_port)}}
+		{{render_control_field(form.dst_dpid)}}
+		{{render_control_field(form.dst_port)}}
+		{{render_control_field(form.threshold)}}
+		{{render_control_field(form.act)}}
+		<button type="submit" class="btn">Add</button>
+	</form>
+</div>
+{% endif %}
+
+
+{%endblock%}

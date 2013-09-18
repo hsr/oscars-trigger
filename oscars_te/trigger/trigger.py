@@ -4,22 +4,39 @@ import json
 import signal
 import socket
 import pprint
+import urllib2
 import requests
 import threading
 import subprocess
 
+from iftranslator import shellquote
 from iftranslator import OVSIFTranslator
 from datetime import datetime as dt
 
 from oscars_te.runnable import Runnable
 
+from oscars_te import app
+log = app.logger
+
+def movingAverage(a, b, weight=.5):
+    """
+    Given two tuples with 2 values each (for TX and RX), return the weighted
+    average of these numbers.
+    
+    :param a: tuple with two values (for TX and RX)
+    :param b: tuple with two values (for TX and RX)
+    :param weight: weight for b (1-weight for a)
+    """
+    return (a[0]*(1.-weight)+b[0]*weight,a[1]*(1.-weight)+b[1]*weight)
+
 class Trigger(Runnable):
     """Periodically monitor events and parse flows"""
     def __init__(self):
         super(Trigger, self).__init__()
-        self._events = []
+        self._events = {}
         self._flows = []
         self._switches = {}
+        self._hosts = {}
     
     def getSwitches(self):
         return self._switches
@@ -30,6 +47,22 @@ class Trigger(Runnable):
         #  'datapath': {
         #    '<dpname>': {
         #      '<port>' : {port_info}
+        #    },
+        #   'error': '<error message>'
+        #  }}
+        raise NotImplementedError
+
+    def addHost(self, host_name, host_info):
+        # self._hosts[host_name] = {
+        #  'address':0.0.0.0, 
+        #  'port': {
+        #    'port_name': {
+        #      'stats' : [
+        #       {'RX':\d, 'TX':\d}
+        #      ],
+        #      'bandwidth': {
+        #      'RX':\d, 'TX':\d
+        #      }
         #    },
         #   'error': '<error message>'
         #  }}
@@ -47,7 +80,8 @@ class Trigger(Runnable):
         raise NotImplementedError
 
     def addEvent(self, event):
-        self._events = [event] + self._events
+        #self._events = [event] + self._events
+        self._events[event['id']] = event
         
     def getFlows(self):
         """
@@ -58,6 +92,7 @@ class Trigger(Runnable):
     def actOnEvent(self):
         raise NotImplementedError
 
+
 class SFlowCollector(Runnable):
     """SFlowCollector"""
     def __init__(self, path):
@@ -67,17 +102,17 @@ class SFlowCollector(Runnable):
     def run(self):
         """docstring for run"""
         try:
-            sys.stderr.write('Starting collector at %s\n' % self.path)
+            log.debug('Starting collector at %s\n' % self.path)
             self._process = subprocess.Popen(self.path)
-            sys.stderr.write('Started with pid %s\n' % str(self._process.pid))
+            log.debug('Started with pid %s\n' % str(self._process.pid))
             while not self.shouldStop():
                 self.waitInterruptible(-1)
         except Exception, e:
-            sys.stderr.write('Could not start process: %s\n' % str(e))
+            log.error('Could not start process: %s\n' % str(e))
         # try:
         #     os.killpg(self._process.pid, signal.SIGTERM)
         # except Exception, e:
-        #     sys.stderr.write(
+        #     log.debug(
         #         'Could not stop process: %s\n' % str(e))
         self.terminate()
 
@@ -114,7 +149,7 @@ class SFlowTrigger(Trigger):
         try:
             datapath = OVSIFTranslator(sw_address)
         except Exception, e:
-            sys.stderr.write(str(e))
+            log.error(str(e))
             error = str(e)
         
         self._switches[sw_name] = {
@@ -143,8 +178,7 @@ class SFlowTrigger(Trigger):
         self.registerFlow('largeflow', flow)
         self.registerThreshold('largeflow', threshold)
     
-    def registerEventListener(self, name, keys, switch, datapath,
-                              port, metric, by_flow, threshold):
+    def registerEventListener(self, name, keys, switch, datapath, port, metric, by_flow, threshold):
         flow = {
             'value': str(metric),
             'keys': str(','.join(keys)),
@@ -155,8 +189,8 @@ class SFlowTrigger(Trigger):
             'value': int(threshold),
             'byFlow': 'true' if by_flow else 'false'
         }
-        sys.stderr.write('flow:' + str(flow) + '\n\n')
-        sys.stderr.write('th:' + str(th) + '\n\n')
+        log.debug('flow:' + str(flow) + '\n\n')
+        log.debug('th:' + str(th) + '\n\n')
         self.registerFlow(str(name), flow)
         self.registerThreshold(str(name), th)
         
@@ -180,25 +214,25 @@ class SFlowTrigger(Trigger):
     
     def registerThreshold(self, threshold_name, threshold_value):
         url = 'http://%s:%d' % (self._url['host'], self._url['port'])
-        sys.stderr.write('Registering threshold %s\n' % str(threshold_value));
+        log.debug('Registering threshold %s\n' % str(threshold_value));
         r = requests.put('%s/threshold/%s/json' % (url, threshold_name),
                         data=json.dumps(threshold_value))
-        sys.stderr.write(str(r) + '\n');
+        log.debug(str(r) + '\n');
     
     def registerGroup(self, group_description):
         url = 'http://%s:%d' % (self._url['host'], self._url['port'])
-        sys.stderr.write('Registering group %s\n' % str(group_description));
+        log.debug('Registering group %s\n' % str(group_description));
         r = requests.put('%s/group/json' % (url),
                         data=json.dumps(group_description))
-        sys.stderr.write(str(r) + '\n');
+        log.debug(str(r) + '\n');
         
     
     def registerFlow(self, flow_name, flow_description):
         url = 'http://%s:%d' % (self._url['host'], self._url['port'])
-        sys.stderr.write('Registering flow %s\n' % str(flow_description));
+        log.debug('Registering flow %s\n' % str(flow_description));
         r = requests.put('%s/flow/%s/json' % (url, flow_name),
                         data=json.dumps(flow_description))
-        sys.stderr.write(str(r) + '\n');
+        log.debug(str(r) + '\n');
         
     def setUrl(self, url): 
         host,port = (url,8008)
@@ -224,7 +258,7 @@ class SFlowTrigger(Trigger):
                 'http://%s:%d/events/json?maxEvents=%d&timeout=%d&eventID=%d' % \
                 (self._url['host'], self._url['port'], total, timeout, start_id))
             if r.status_code != 200:
-                sys.stderr.write("Error, return code = %d\n" % r.status_code )
+                log.error("Return code = %d\n" % r.status_code )
             return r.json()
         except Exception, e:
             pass
@@ -237,7 +271,7 @@ class SFlowTrigger(Trigger):
         maxTries = 10
         while maxTries > 0 and not self.shouldStop():
             try:
-                sys.stderr.write('Registering default event listener...\n')
+                log.debug('Registering default event listener...\n')
                 #self.registerDefaultEventListener()
                 self.registerLargeTCPEventListener()
                 maxTries = -1
@@ -260,8 +294,9 @@ class SFlowTrigger(Trigger):
             for e in events:
                 
                 s = pprint.pformat(events)
-                sys.stderr.write(s+'\n')
+                log.debug(s+'\n')
                 
+                e['id'] = e['eventID']
                 self.addEvent(e)
                 
                 #if 'incoming' == e['metric']:
@@ -274,9 +309,73 @@ class SFlowTrigger(Trigger):
                 if len(metric) > 0:
                     #pprint.pformat(metric[0]["topKeys"][0]["key"])
                     s = pprint.pformat(metric)
-                    sys.stderr.write('Metric:\n' + s +'\n')
+                    log.debug('Metric:\n' + s +'\n')
 
         if self.collector:
             while not self.collector.isStopped():
                 self.collector.stop()
         self.terminate()
+
+class HostTrigger(Trigger):
+    """docstring for HostTrigger"""
+    def __init__(self):
+        super(HostTrigger, self).__init__()
+        self.registerHostEvent('mininet', '127.0.0.1', 'eth1', 400)
+    
+    def registerHostEvent(self, host_name, host_address, port, threshold):
+        if not self._hosts.has_key(host_name):
+            self._hosts[host_name] = {
+                'port':{}, 
+                'error':''}
+        self._hosts[host_name]['address'] = host_address
+        self._hosts[host_name]['port'][port] = {
+            'stats':[],
+            'threshold': threshold
+        }
+    def collectStats(self):
+        script = \
+            """
+            ifconfig -a | grep -A7 HW | grep -E 'HW|TX by|RX by' | 
+                awk '{ 
+                    if ((NR % 2) == 1 ) {
+                        printf "\\""$1"\\":{";
+                    }
+                    else {
+                        printf "\\"RX\\":";
+                        printf substr($2,7);
+                        printf ",\\"TX\\":";
+                        printf substr($6,7);
+                        printf "}\\n" }}';
+            """
+        for host_name,host_info in self._hosts.iteritems():
+            # This is not a good way to do this, but it is was fast to code
+            cmd = 'ssh -o BatchMode=yes -o ConnectTimeout=1 %s %s' %\
+                 (host_info['address'], shellquote(script))
+            p = subprocess.Popen(cmd,
+                                 shell=True,
+                                 stdout=subprocess.PIPE)
+            port_info = p.communicate()[0]
+            stats = '{%s}' % ",".join(port_info.split('\n')[:-1])
+            jstats = json.loads(stats)
+            #print stats
+            for port_name, port_info in host_info['port'].iteritems():
+                if not jstats.has_key(port_name):
+                    host_info['error'] = 'Could not find port %s' % port_name
+                    continue
+                if len(port_info['stats']) > 10:
+                    port_info['stats'] = \
+                        port_info['stats'][1:] + [jstats[port_name]]
+                else:
+                    port_info['stats'] += [jstats[port_name]]
+            
+            print host_name, host_info
+            
+
+    def run(self):
+        while not self.shouldStop():
+            self.collectStats()
+            self.waitInterruptible(1)
+
+
+
+

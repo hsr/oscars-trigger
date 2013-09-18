@@ -52,11 +52,21 @@ function flow2str(match, actions) {
 	if (match.dataLayerVirtualLan != "0")
 		s += ', vlan:' + match.dataLayerVirtualLan;
 	if (match.dataLayerSource != "00:00:00:00:00:00" ||
-		match.dataLayerDestination != "00:00:00:00:00:00") {
-		s += ', l2:' + match.dataLayerSource + '->' 
-			+ match.dataLayerDestination;
+		match.dataLayerDestination != "00:00:00:00:00:00" ||
+		match.dataLayerType != "0x0000") {
+		s += ', l2:';
+		if (match.dataLayerType != "0x0000") {
+			s += 'dl_type=' + match.dataLayerType + ' '
+		}
+		if (match.dataLayerSource != "00:00:00:00:00:00" ||
+			match.dataLayerDestination != "00:00:00:00:00:00") {
+			s += '' + match.dataLayerSource + '->' 
+				+ match.dataLayerDestination;
+		}
+		
+
 	}
-	if (match.networkSource != '0.0.0.0' || 
+	if (match.networkSource != '0.0.0.0' ||
 		match.networkDestination != '0.0.0.0') {
 		s += ', l3:' + match.networkSource + '->' 
 			+ match.networkDestination;
