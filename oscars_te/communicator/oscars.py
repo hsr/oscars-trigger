@@ -2,6 +2,7 @@
 
 import sys
 import MySQLdb as my
+from config import OSCARS_MYSQL_USERNAME, OSCARS_MYSQL_PASSWORD
 
 err = ''
 
@@ -19,22 +20,78 @@ URN_LINK   = 3
 #     WHERE reservations.status = 'ACTIVE'
 #     ORDER BY pathId,seqNumber"""
     
-SELECT_ACTIVE_CIRCUITS_SQL = \
-"""SELECT r.id,p.seqNumber,urn FROM reservations AS r
+SELECT_CIRCUITS_SQL = \
+"""SELECT r.id,p.seqNumber,urn,s.bandwidth FROM reservations AS r
     JOIN stdConstraints AS s ON s.reservationId = r.id
     JOIN pathElems as p ON p.pathId = s.pathId 
-    WHERE r.status ='ACTIVE' and s.constraintType = 'reserved'
+    WHERE r.status ='%s' and s.constraintType = 'reserved'
     ORDER BY p.pathId,seqNumber"""
 
-def get_mysql_conn(host="infinerademo.es.net", port="3306", 
-                   user="reader", passwd="reader", db="rm"):
+def get_mysql_conn(host="infinerademo.es.net", port="3306"):
+    user = OSCARS_MYSQL_USERNAME
+    passwd = OSCARS_MYSQL_PASSWORD
     try:
         return my.connect(host=host, port=int(port), user=user, 
-                          passwd=passwd, db=db)
+                          passwd=passwd, db="rm")
     except Exception, e:
-        raise Exception('Could not connect to OSCARS database at %s:%s\n' % (host,port))
+        raise Exception('Could not connect to OSCARS database at %s:%s\n' % \
+             (host,port))
 
-def get_active_circuits(oscarsdb='localhost'):
+def get_circuits_by_status(oscarsdb='localhost', status='ACTIVE'):
+    """
+    Returns a dict with circuit info in the following format:
+    
+    {
+        <id>: {
+            'bandwidth': <bandwidth>
+            'hops': {
+                0: {'node': <node>, 'port': <port>}
+                1: {'node': <node>, 'port': <port>}
+                ...
+            }
+        }
+        <id>: ...
+        ...
+    }
+    
+    """
+    host,port = (oscarsdb,3306)
+    if len(host.split(':')) > 1:
+        host,port = host.split(':')
+        
+    conn = get_mysql_conn(host=host, port=port);
+    if not conn:
+        raise Exception('Could not open mysql connection')
+    
+    circuits = {}
+    cursor = conn.cursor()
+    cursor.execute(SELECT_CIRCUITS_SQL % status)
+    
+    for hop in cursor.fetchall():
+        id,seq,urn = (hop[0],hop[1],urn_split(hop[2]))
+        
+    
+        if not circuits.has_key(id):
+            circuits[id] = {'bandwidth': hop[3], 'hops':{}}
+    
+        circuits[id]['hops'][int(seq)] = {
+            'node': urn[URN_NODE],
+            'port': urn[URN_PORT],
+        }
+    
+    return circuits
+
+def get_active_circuits(oscarsdb='localhost', status='ACTIVE'):
+    """
+    Query the mysql oscars db for circuits. 
+    Returns json-formatted objects describing circuit hops, one per line.
+    Sample output:
+    
+    {"name":"testdomain-1-12", "Dpid":"00.00.00.00.00.00.00.04"}
+    {"name":"testdomain-1-12", "Dpid":"11.11.00.00.00.00.00.05"}
+    {"name":"testdomain-1-12", "Dpid":"11.11.00.00.00.00.00.06"}
+    {"name":"testdomain-1-12", "Dpid":"00.00.00.00.00.00.00.07"}
+    """
     host,port = (oscarsdb,3306)
     if len(host.split(':')) > 1:
         host,port = host.split(':')
@@ -51,7 +108,7 @@ def get_active_circuits(oscarsdb='localhost'):
     nodes        = []
     circuitsById = {}
     
-    cursor.execute(SELECT_ACTIVE_CIRCUITS_SQL)
+    cursor.execute(SELECT_CIRCUITS_SQL % status)
     for hop in cursor.fetchall():
         id,seq,urn = (hop[0],hop[1],urn_split(hop[2]))
 
