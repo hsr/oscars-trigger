@@ -43,8 +43,12 @@ def login():
         return oid.try_login(
             g.authform.openid.data,
             ask_for = ['nickname', 'email'])
-    
-    return render_template('login.html', error="Ops!")
+
+    return render_template('login.html', error=oid.fetch_error())
+
+@oid.errorhandler
+def on_error(message):
+    flash(u'OpenID Error: %s' % message, 'error')
 
 @oid.after_login
 def after_login(resp):
@@ -70,9 +74,9 @@ def after_login(resp):
         session.pop('remember_me', None)
     login_user(user, remember = remember_me)
     flash('You were successfully logged in!','success')
-    return redirect(request.args.get('next') or url_for('index'))
+    return redirect(request.args.get('next') or url_for('default'))
 
 @app.route('/logout')
 def logout():
     logout_user()
-    return redirect(url_for('default'))
+    return redirect(request.args.get('next') or url_for('default'))
