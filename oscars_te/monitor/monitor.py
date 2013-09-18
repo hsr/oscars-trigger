@@ -7,6 +7,9 @@ import urllib2
 from oscars_te.runnable import Runnable
 from datetime import datetime as dt
 
+from oscars_te import app
+log = app.logger
+
 class Monitor(Runnable):
     """Periodically monitor flows"""
     def __init__(self, interval = 5):
@@ -33,7 +36,7 @@ class Monitor(Runnable):
         that should be implemented by sub classes
         """
         try:
-            sys.stderr.write('Starting monitor...\n')
+            log.debug('Starting monitor...')
             while not self.shouldStop():
                 runTime = dt.now()
                 try:
@@ -42,15 +45,13 @@ class Monitor(Runnable):
                     else:
                         self.stats += [self.requestStats()]
                 except Exception, e:
-                    sys.stderr.write('%s\n' % str(e))
+                    log.debug('%s\n' % str(e))
 
                 elapsed = dt.now() - runTime
                 seconds = float(elapsed.seconds - (elapsed.microseconds*1e-6))
                 wait4   = float(self.interval) - seconds
                 if wait4 < 0:
-                    # TODO: replace by logger
-                    sys.stderr.write(
-                        "Command is taking more than %f to execute!" % \
+                    log.debug("Command is taking more than %f to execute!" % \
                         self.interval)
                 else:
                     self.waitInterruptible(wait4)
