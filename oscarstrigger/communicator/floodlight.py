@@ -15,7 +15,7 @@ def get_topology(controller='localhost'):
     try:
         host = socket.gethostbyname(host)
     except Exception:
-        raise Exception('Could not resolve controller hostname. ')
+        raise Exception('Could not resolve controller hostname')
     
     url = "http://%s:%s/wm/topology/links/json" % (host,port)
     try:
@@ -23,8 +23,8 @@ def get_topology(controller='localhost'):
         if len(response):
             return response
     except Exception, e:
-        raise Exception('Could not fetch topology. ')
-    raise Exception('No response from controller. ')
+        raise Exception('Controller not available')
+    raise Exception('Timeout: no response from controller')
 
 def update_topology_file(controller):
     """
@@ -41,5 +41,5 @@ def update_topology_file(controller):
         topology_file.write(floodlightTopology)
         topology_file.close()
     except Exception, e:
-        raise Exception('Could not write floodlight topology file. ')
+        raise Exception('Could not write floodlight topology file')
 

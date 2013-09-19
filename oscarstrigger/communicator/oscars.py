@@ -34,7 +34,7 @@ def get_mysql_conn(host="infinerademo.es.net", port="3306"):
         return my.connect(host=host, port=int(port), user=user, 
                           passwd=passwd, db="rm")
     except Exception, e:
-        raise Exception('Could not connect to OSCARS database at %s:%s\n' % \
+        raise Exception('Could not connect to OSCARS database at %s:%s' % \
              (host,port))
 
 def get_circuits_by_status(oscarsdb='localhost', status='ACTIVE'):

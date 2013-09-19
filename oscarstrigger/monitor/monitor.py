@@ -45,7 +45,7 @@ class Monitor(Runnable):
                     else:
                         self.stats += [self.requestStats()]
                 except Exception, e:
-                    log.debug('%s\n' % str(e))
+                    log.debug('%s' % str(e))
 
                 elapsed = dt.now() - runTime
                 seconds = float(elapsed.seconds - (elapsed.microseconds*1e-6))
@@ -86,7 +86,7 @@ class FloodlightFlowMonitor(FloodlightMonitor):
         try:
             response = urllib2.urlopen(url, timeout=10).read();
         except Exception, e:
-            raise Exception('Could not fetch OFStats: %s ' % e.message)
+            raise Exception('Could not fetch OFStats: %s' % e.message)
         return response
         
 class FloodlightPortMonitor(FloodlightMonitor):
@@ -100,7 +100,7 @@ class FloodlightPortMonitor(FloodlightMonitor):
         try:
             response = urllib2.urlopen(url, timeout=10).read();
         except Exception, e:
-            raise Exception('Could not fetch port stats: %s ' % e.message)
+            raise Exception('Could not fetch port stats: %s' % e.message)
         return response
         
 class FloodlightDefaultMonitor(FloodlightFlowMonitor):
