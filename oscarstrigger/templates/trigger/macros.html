@@ -167,7 +167,6 @@
 	<tr><td colspan="{{header|length}}"></td></tr>
 	{% endfor %}
 </table>
-
 {% endmacro %}
 
 {% macro render_ordered_data_table(title, keys, headers, data) %}
@@ -199,6 +198,47 @@
 	<tr><td colspan="{{headers|length}}"></td></tr>
 	{% endfor %}
 </table>
+{% endmacro %}
 
+
+{% macro render_data_table_with_action(title, keys, headers, data, action) %}
+<h3>{{title}}</h3>
+<table class="table" id="table">
+	<tr>
+		{% for key in keys %}
+			<th>{{headers[loop.index0]|safe}}</th>
+		{% endfor %}
+		<th>{{action|safe|capitalize}}</th>
+	</tr>
+	{% for index,row in data.iteritems() %}
+	<tr>
+		{% for key in keys %}
+			<td>
+				{% if row[key] is sameas false or row[key] is sameas true %}
+					{% if row[key] is sameas true %}
+						<i class="icon-ok"></i>
+					{% else %}
+						<i class="icon-remove"></i>
+					{% endif %}
+				{% else %}
+					{{row[key]}}
+				{% endif %}
+			</td>
+		{% endfor %}
+		<td>
+			<a href="{{request.base_url}}/{{action}}/{{row['id']}}">
+			{% if action is sameas 'delete' %}
+				<i class="icon-trash"></i>
+			{% else %}
+				<i class="icon-wrench"></i>
+			{% endif %}
+			</a>
+		</td>
+	</tr>
+	{% else %}
+	<tr><td colspan="{{headers|length + 1}}">No {{title|lower}} found</td></tr>
+	<tr><td colspan="{{headers|length + 1}}"></td></tr>
+	{% endfor %}
+</table>
 {% endmacro %}
 

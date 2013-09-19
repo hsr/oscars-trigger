@@ -34,16 +34,31 @@
 </table>
 
 {% from "trigger/macros.html" import render_pagination, render_inline_field, 
-render_control_field, render_field, render_ordered_data_table, render_data_table %}
+render_control_field, render_field, render_ordered_data_table, 
+render_data_table, render_data_table_with_action %}
 
 {{render_pagination(pagination)}}
+
+{% if g.user.is_authenticated() and g.user.is_admin() %}
+
+{{ render_data_table_with_action(
+	'Triggers',
+	['id','src_dpid','src_port','dst_dpid','dst_port','threshold','act'],
+	['ID','Source DPID','Source Port','Destination DPID','Destination Port','Threshold','Auto'],
+	revents,
+	'delete')
+}}
+
+{% else %}
 
 {{ render_ordered_data_table(
 	'Triggers',
 	['id','src_dpid','src_port','dst_dpid','dst_port','threshold','act'],
 	['ID','Source DPID','Source Port','Destination DPID','Destination Port','Threshold','Auto'],
-	revents)
+	revents,)
 }}
+
+{% endif %}
 
 {#
 	{{ render_data_table(' Triggers', {
