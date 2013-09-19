@@ -1,10 +1,12 @@
 {% extends "bootstrap_base.html" %}
 
-{%block title%}oscarsTRIGGER - Traffic Engineering with OSCARS and SDN{%endblock%}
+{%block title%}oscarsTE - Traffic Engineering with OSCARS and SDN{%endblock%}
 
 {%block body_content%}
 
 {% include "navbar.html" %}
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css')}}" type="text/css" media="all">
 
 <div class="container">
     {% for category, msg in get_flashed_messages(with_categories=true) %}

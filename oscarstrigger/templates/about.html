@@ -2,10 +2,104 @@
 
 {%block main_content%}
 
-<h1>Traffic Monitoring and Engineering with OSCARS</h1>
+<div class="row">
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean nec fringilla enim. Donec consequat id velit vitae gravida. Phasellus dui diam, mattis ut sem egestas, scelerisque ultricies est. Aenean egestas ut purus at malesuada. Donec at lacus lobortis, pellentesque libero tincidunt, commodo metus. Aliquam quis justo ac orci tempus pulvinar. Donec feugiat velit quis risus posuere ultricies. Donec eu odio non neque fringilla egestas. Suspendisse sed augue venenatis, facilisis diam interdum, vestibulum arcu.
+	<div class="span2"></div>
+	<div class="span8">
+		<h2>Simple Traffic Engineering with <br>OSCARS and SDN</h2>
 
-Morbi nec leo a nisl facilisis feugiat. Duis vitae massa mi. Pellentesque orci felis, faucibus id convallis sit amet, sagittis vel dolor. Pellentesque tempus tincidunt metus consectetur lobortis. Donec volutpat augue at consectetur viverra. Nunc tristique, dolor at rhoncus pretium, eros mi suscipit lectus, nec lacinia magna turpis in tellus. Morbi nec nulla sit amet turpis congue eleifend. Mauris congue augue nec libero condimentum aliquet. Quisque eleifend quis libero adipiscing adipiscing. Nullam nulla nulla, accumsan sed sem in, ornare mollis lectus. Suspendisse at nulla pulvinar, ultrices dolor nec, dictum nulla. Integer venenatis semper lacus, ut hendrerit diam consequat et. Nulla eros purus, vehicula sit amet ipsum id, volutpat sagittis diam. Nunc sit amet ligula et tellus fermentum scelerisque at a leo.
+	<p>
+		In the summer of 2013, ESnet put efforts on the integration of 
+		<a href="http://www.es.net/services/virtual-circuits-oscars/%20OSCARS">OSCARS</a>
+		and <a href="http://www.projectfloodlight.org/floodlight/">Floodlight</a>.
+		In the SDN context, OSCARS is an application that controls the
+		<a href="http://es.net/">ESnet</a> 100G network and Floodlight is a
+		SDN controller that communicates with network devices using
+		<a href="http://www.openflow.org/">OpenFlow</a>.
+	</p>
+	<p>
+		This simple application demonstrates how one can monitor and optimize
+		a circuit-managed network using OSCARS and SDN. 
+	</p>
+	<p>
+		The summer effort involved the development and extensions of multiple
+		projects, including a new Path Setup Service for OSCARS, extensions to
+		its internal classes and this web application.
+	</p>
+	<p>
+		Here is a complete list of the related projects:
+		<dl>
+			<dt>
+				OSCARS - On-Demand Secure Circuits and Advance Reservation System
+			</dt>
+			<dd>
+				<p>
+					ESnet's On-Demand Secure Circuits and Advance Reservation System (OSCARS) 
+					provides multi-domain, high-bandwidth virtual circuits that guarantee 
+					end-to-end network data transfer performance.
+					Originally a research concept, OSCARS has grown into a robust production service.
+					Currently OSCARS virtual circuits carry fifty percent of ESnet’s annual 60
+					petabytes of traffic.<br/>
+					<small>Source: <a href="http://www.es.net/services/virtual-circuits-oscars/">http://www.es.net/services/virtual-circuits-oscars/</a></small>
+				
+					<p>Check the
+						<a href="http://github.com/hsr/oscars">code on github
+						<i class="icon-share"></i></a>
+					</p>
+				</p>
+			</dd>
+	
+			<dt>
+				OSCARS SDNPSS - Path Setup Service interface to SDN Controllers
+			</dt>
+			<dd>
+				<p>
+					At the edge of the OSCARS Reservation Engine is the Path Setup Subsystem (PSS),
+					which is responsible for the interface between network devices and OSCARS.
+
+					This project implements the interface between OSCARS and Floodlight, the
+					SDN controller that is currently supported by OSCARS.
+					
+					<p>Check the 
+						<a href="http://github.com/hsr/oscars-sdnpss">code on github
+						<i class="icon-share"></i></a>
+					</p>
+				</p>
+			</dd>
+			<dt>
+				OSCARS Listener - Requesting circuits using JSON
+			</dt>
+			<dd>
+				<p>
+					This project implements a simple HTTP service that translates 
+					JSON circuit reservation requests to the
+					<a href="https://code.google.com/p/oscars-idc/wiki/OSCARS_Java_Client_API">OSCARS API</a>.
+				
+					<p>Check the
+						<a href="http://github.com/hsr/oscars-listener">code on github
+						<i class="icon-share"></i></a>
+					</p>
+				</p>
+			</dd>
+			<dt>
+				OSCARS Trigger - Simple Traffic Engineering for OSCARS
+			</dt>
+			<dd>
+				<p>
+					This application interfaces with OSCARS and the SDN controller 
+					to provide multiple features, such as multi-layer network 
+					visualization, OpenFlow monitoring and simple traffic offloading.
+				
+					<p>Check the
+						<a href="http://github.com/hsr/oscars-trigger">code on github
+						<i class="icon-share"></i></a>
+					</p>
+				</p>
+			</dd>
+		</dl>
+	</p>
+	</div>
+	<div class="span2"></div>
+</div>
 
 {%endblock%}
