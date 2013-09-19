@@ -1,6 +1,3 @@
-import sys
-import pprint
-
 from flask import render_template, session, request, \
                   url_for, redirect, flash, g
 from oscarstrigger import app, db, lm, oid
@@ -52,8 +49,6 @@ def on_error(message):
 
 @oid.after_login
 def after_login(resp):
-    s = pprint.pformat(resp)
-    sys.stderr.write(s+'\n')
     if resp.email is None or resp.email == "":
         flash('Invalid login. Please try again.')
         return redirect(url_for('login'))
