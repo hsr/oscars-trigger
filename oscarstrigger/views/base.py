@@ -1,5 +1,5 @@
 import sys
-from flask import abort, render_template, jsonify
+from flask import abort, render_template, jsonify, url_for, redirect
 from jinja2 import TemplateNotFound
 from oscarstrigger import app
 
@@ -17,7 +17,9 @@ def not_found(e):
 @app.route('/<page>')
 def default(page):
     try:
+        if page == 'index':
+            return redirect(url_for('plot.interactive'));
+
         return render_template('%s.html' % page)
     except TemplateNotFound:
         abort(404)
-
