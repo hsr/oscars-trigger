@@ -70,8 +70,8 @@ BaseTopology.prototype.parseBaseTopology = function(file, callback) {
 		object.resetLinks();
 		
 		topology.forEach(function(topologyLink) {
-			var origin      = cleanDPID(topologyLink["src-switch"]),
-				destination = cleanDPID(topologyLink["dst-switch"]),
+			var origin      = topologyLink["src-switch"],
+				destination = topologyLink["dst-switch"],
 				sport       = topologyLink["src-port"],
 				dport       = topologyLink["dst-port"],
 				links       = object.linksByOrigin[origin] || (object.linksByOrigin[origin] = []);
@@ -106,7 +106,7 @@ BaseTopology.prototype.parseBaseTopology = function(file, callback) {
 			var desc = "Device " + dpid + ",\n"
 			var links = 'Links (port->node): '
 			object.linksByOrigin[dpid].forEach(function(l) {
-				links += l.sport + '->' + l.target + ','
+				links += l.sport + '->' + cleanDPID(l.target) + ','
 			});
 			object.descriptionByDevice[dpid] = desc + links;
 		}
@@ -202,9 +202,9 @@ BaseTopology.prototype.redraw = function(callback) {
 		object.circles.selectAll("circle")
 			.data(devices).enter()
 	        .append("image")
-	        .attr("xlink:href", function(d, i) { 
-				if (devices[i].type == 1)
-					return "/static/img/red_router.png"
+	        .attr("xlink:href", function(d, i) {
+				if (typeof devices[i].png === 'string')
+					return "/static/img/" + devices[i].png
 				return "/static/img/router.png"
 			})
 			.attr("x", function(d, i) { return object.positions[i][0] - 20; })
@@ -218,7 +218,7 @@ BaseTopology.prototype.redraw = function(callback) {
 			.attr("dy", ".2em")
 			.attr("class", "label")
 			.attr("id", function(d) { return 'netdev' + d.dpid; })
-			.text(function(d) { return d.dpid; });
+			.text(function(d) { return cleanDPID(d.dpid); });
 
 		if (typeof callback !== 'undefined') {
 			callback();

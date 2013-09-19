@@ -14,8 +14,8 @@ FloodlightTopology.prototype.parseFloodlightTopology = function(file, callback) 
 	
 	 	d3.json(file, function(topology) {
 	 		topology.forEach(function(topologyLink) {
-	 			var origin      = cleanDPID(topologyLink["src-switch"]),
-	 				destination = cleanDPID(topologyLink["dst-switch"]),
+	 			var origin      = topologyLink["src-switch"],
+	 				destination = topologyLink["dst-switch"],
 	 				sport       = topologyLink["src-port"],
 	 				dport       = topologyLink["dst-port"],
 	 				links       = object.linksByOrigin[origin] || (object.linksByOrigin[origin] = []);

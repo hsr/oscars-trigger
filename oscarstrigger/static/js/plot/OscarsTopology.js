@@ -17,15 +17,15 @@ OscarsTopology.prototype.parseOscarsTopology = function(controller, oscarsdb, ca
 
 			circuits.forEach(function(circuitLink) {
 				var id   = circuitLink.name,
-				    hops = circuitHops[cleanDPID(id)] || (circuitHops[cleanDPID(id)] = '');
+				    hops = circuitHops[id] || (circuitHops[id] = '');
 				hops += circuitLink.Dpid;
-				circuitHops[cleanDPID(id)] = hops;
+				circuitHops[id] = hops;
 			});
 
 			circuits.forEach(function(circuitLink) {
 				var id    = circuitLink.name,
 					hop   = circuitLink.Dpid,
-					links = object.linksByOrigin[cleanDPID(hop)] || (object.linksByOrigin[cleanDPID(hop)] = []);
+					links = object.linksByOrigin[hop] || (object.linksByOrigin[hop] = []);
 
 				// This assumes that all circuit links are sequential in the input file
 				// i.e. no link from a circuit's set of links is mixed with other circuit's 
@@ -36,12 +36,12 @@ OscarsTopology.prototype.parseOscarsTopology = function(controller, oscarsdb, ca
 				}
 
 				if (previousHop != '') {
-					if (cleanDPID(previousHop) != '0' && cleanDPID(hop) != '0') {
+					if (previousHop != '0' && hop != '0') {
 						links.push({
 							id: id,
 							type: 'CIRCUIT',
-							source: cleanDPID(previousHop),
-							target: cleanDPID(hop),
+							source: previousHop,
+							target: hop,
 							color: '#' + colorFromString(circuitHops[id])
 						});
 					}
