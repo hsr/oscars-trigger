@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Oscars-trigger by hsr</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>Oscars-trigger</h1>
+        <h2>Simple traffic engineering for circuit managed networks using OSCARS and SDN</h2>
+        <a href="https://github.com/hsr/oscars-trigger" class="button"><small>View project on</small>GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h1>
+<a name="simple-traffic-engineering-with-oscars-and-sdn" class="anchor" href="#simple-traffic-engineering-with-oscars-and-sdn"><span class="octicon octicon-link"></span></a>Simple Traffic Engineering with OSCARS and SDN</h1>
+
+<p>In the summer of 2013, ESnet put efforts on the integration of <a href="http://www.es.net/services/virtual-circuits-oscars/%20OSCARS">OSCARS</a> and <a href="http://www.projectfloodlight.org/floodlight/">Floodlight</a>. In the SDN context, OSCARS is an application that controls the <a href="http://es.net/">ESnet</a> 100G network and Floodlight is a SDN controller that communicates with network devices using <a href="http://www.openflow.org/">OpenFlow</a>.</p>
+
+<p>This simple application demonstrates how one can monitor and optimize a circuit-managed network using OSCARS and SDN (see the end of this README for a install guide). </p>
+
+<p>The summer effort involved the development and extensions of multiple projects, including a new Path Setup Service for OSCARS, extensions to its internal classes and this web application.</p>
+
+<p>Here is a complete list of the related projects:</p>
+
+<h4>
+<a name="oscars---on-demand-secure-circuits-and-advance-reservation-system" class="anchor" href="#oscars---on-demand-secure-circuits-and-advance-reservation-system"><span class="octicon octicon-link"></span></a>OSCARS - On-Demand Secure Circuits and Advance Reservation System</h4>
+
+<p>ESnet's On-Demand Secure Circuits and Advance Reservation System (OSCARS) provides multi-domain, high-bandwidth virtual circuits that guarantee end-to-end network data transfer performance. Originally a research concept, OSCARS has grown into a robust production service. Currently OSCARS virtual circuits carry fifty percent of ESnet’s annual 60 petabytes of traffic.[^1]</p>
+
+<p>[^1]: Source: <a href="http://www.es.net/services/virtual-circuits-oscars/">http://www.es.net/services/virtual-circuits-oscars/</a> </p>
+
+<p>Check the <a href="http://github.com/hsr/oscars">code on github</a></p>
+
+<h4>
+<a name="oscars-sdnpss---path-setup-service-interface-to-sdn-controllers" class="anchor" href="#oscars-sdnpss---path-setup-service-interface-to-sdn-controllers"><span class="octicon octicon-link"></span></a>OSCARS SDNPSS - Path Setup Service interface to SDN Controllers</h4>
+
+<p>At the edge of the OSCARS Reservation Engine is the Path Setup Subsystem (PSS), which is responsible for the interface between network devices and OSCARS. This project implements the interface between OSCARS and Floodlight, the SDN controller that is currently supported by OSCARS.</p>
+
+<p>Check the <a href="http://github.com/hsr/oscars-sdnpss">code on github</a></p>
+
+<h4>
+<a name="oscars-listener---requesting-circuits-using-json" class="anchor" href="#oscars-listener---requesting-circuits-using-json"><span class="octicon octicon-link"></span></a>OSCARS Listener - Requesting circuits using JSON</h4>
+
+<p>This project implements a simple HTTP service that translates JSON circuit reservation requests to the OSCARS API.</p>
+
+<p>Check the <a href="http://github.com/hsr/oscars-listener">code on github</a></p>
+
+<h4>
+<a name="oscars-trigger---simple-traffic-engineering-for-oscars" class="anchor" href="#oscars-trigger---simple-traffic-engineering-for-oscars"><span class="octicon octicon-link"></span></a>OSCARS Trigger - Simple Traffic Engineering for OSCARS</h4>
+
+<p>The OSCARS Trigger (this application) interfaces with OSCARS and the SDN controller to provide multiple features, such as multilayer network visualization, OpenFlow monitoring and simple traffic offloading.</p>
+
+<p>Here is an screenshot of the web interface:
+<img src="https://raw.github.com/hsr/oscars-trigger/master/screenshot.png" alt="alt text" title="OSCARS Trigger Web interface"></p>
+
+<p>To install and run the application, follow these steps:</p>
+
+<pre><code># clone the repository
+git clone http://github.com/hsr/oscars-trigger
+cd oscars-trigger
+
+# install dependencies
+sudo pip install -r requirements.txt
+sudo apt-get -y install python-mysqldb
+
+# create the database
+python ./db_create.py
+
+# run the application
+python ./run.py --controller=&lt;Floodlight controller IP&gt; \
+                --oscars=&lt;OSCARS server IP&gt;
+</code></pre>
+
+<p>Check the <a href="http://github.com/hsr/oscars-trigger">code on github</a></p>
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/hsr/oscars-trigger/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/hsr/oscars-trigger/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/hsr/oscars-trigger"></a> is maintained by <a href="https://github.com/hsr">hsr</a>.</p>
+
+          <p>This page was generated by <a href="pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+  
+  </body>
+</html>
