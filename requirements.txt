@@ -1,9 +1,10 @@
-Flask
-Flask-Bootstrap
-Flask-OpenID
-Flask-Login
-Flask-WTF
+Flask==0.10.1
+Flask_Admin==1.0.6
+Flask_Bootstrap==2.3.2.1
+Flask_Login==0.2.7
+Flask_OpenID==1.1.1
+Flask_SQLAlchemy==1.0
+Flask_WTF==0.9.1
 sqlalchemy<=0.7.10
-Flask-SQLAlchemy
 SQLAlchemy-migrate
 requests
