@@ -30,7 +30,10 @@ Check the [code on github](http://github.com/hsr/oscars-listener)
 
 #### OSCARS Trigger - Simple Traffic Engineering for OSCARS
 
-The OSCARS Trigger (this application) interfaces with OSCARS and the SDN controller to provide multiple features, such as multi-layer network visualization, OpenFlow monitoring and simple traffic offloading.
+The OSCARS Trigger (this application) interfaces with OSCARS and the SDN controller to provide multiple features, such as multilayer network visualization, OpenFlow monitoring and simple traffic offloading.
+
+Here is an screenshot of the web interface:
+![alt text](https://raw.github.com/hsr/oscars-trigger/master/screenshot.png "OSCARS Trigger Web interface")
 
 To install and run the application, follow these steps:
 
