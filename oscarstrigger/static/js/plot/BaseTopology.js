@@ -213,7 +213,7 @@ BaseTopology.prototype.redraw = function(callback) {
 	        .attr("height", 30);
 		// Add labels
 		g.append("svg:text")
-			.attr("x", function(d, i) { return object.positions[i][0] + 6; })
+			.attr("x", function(d, i) { return object.positions[i][0] + 12; })
 			.attr("y", function(d, i) {	return object.positions[i][1];	})
 			.attr("dy", ".2em")
 			.attr("class", "label")
