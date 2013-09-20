@@ -19,8 +19,7 @@ def handleNoCacheCircuits():
             resp = send_file('static' + request.path)
     except Exception, e:
         log.warning('Could not fetch circuits: %s', str(e))
-        resp = Response(json.loads('[]'), mimetype='application/json')
-        
+        resp = Response('[]', mimetype='application/json')
     resp.cache_control.no_cache = True
     return resp
 
@@ -35,7 +34,7 @@ def handleNoCacheTopology():
             resp = send_file('static' + request.path)
     except Exception, e:
         log.warning('Could not fetch topology: %s', str(e))
-        resp = Response(json.loads('{}'), mimetype='application/json')
+        resp = Response('[]', mimetype='application/json')
         
     resp.cache_control.no_cache = True
     return resp    
