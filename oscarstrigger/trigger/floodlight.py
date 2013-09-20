@@ -10,7 +10,7 @@ from oscarstrigger.trigger import movingAverage
 
 from oscarstrigger.communicator import oscars
 
-from config import EVENT_LISTENER_THRESHOLD, EVENT_LISTENER_BANDWIDTH
+from config import EVENT_LISTENER_THRESHOLD, EVENT_LISTENER_BANDWIDTH, EVENT_LISTENER_MOVING_AVERAGE_W
 
 from oscarstrigger import app
 log = app.logger
@@ -241,7 +241,8 @@ class FloodlightTrigger(FloodlightPortMonitor, Trigger):
                             trigger_info['time']  += [now]
 
                         trigger_info['bandwidth'] = movingAverage(
-                            trigger_info['bandwidth'], bandwidth, weight=.5)
+                            trigger_info['bandwidth'], bandwidth, 
+                            weight=EVENT_LISTENER_MOVING_AVERAGE_W)
 
             violation = None
             if trigger_info['bandwidth'][0] > trigger_info['threshold']:
