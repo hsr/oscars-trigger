@@ -2,7 +2,7 @@
 
 In the summer of 2013, ESnet put efforts on the integration of [OSCARS](http://www.es.net/services/virtual-circuits-oscars/ OSCARS) and [Floodlight](http://www.projectfloodlight.org/floodlight/). In the SDN context, OSCARS is an application that controls the [ESnet](http://es.net/) 100G network and Floodlight is a SDN controller that communicates with network devices using [OpenFlow](http://www.openflow.org/).
 
-This simple application demonstrates how one can monitor and optimize a circuit-managed network using OSCARS and SDN.
+This simple application demonstrates how one can monitor and optimize a circuit-managed network using OSCARS and SDN (see the end of this README for a install guide). 
 
 The summer effort involved the development and extensions of multiple projects, including a new Path Setup Service for OSCARS, extensions to its internal classes and this web application.
 
@@ -31,5 +31,22 @@ Check the [code on github](http://github.com/hsr/oscars-listener)
 #### OSCARS Trigger - Simple Traffic Engineering for OSCARS
 
 The OSCARS Trigger (this application) interfaces with OSCARS and the SDN controller to provide multiple features, such as multi-layer network visualization, OpenFlow monitoring and simple traffic offloading.
+
+To install and run the application, follow these steps:
+
+    # clone the repository
+    git clone http://github.com/hsr/oscars-trigger
+    cd oscars-trigger
+    
+    # install dependencies
+    sudo pip install -r requirements.txt
+    sudo apt-get -y install python-mysqldb
+    
+    # create the database
+    python ./db_create.py
+    
+    # run the application
+    python ./run.py --controller=<Floodlight controller IP> \
+                    --oscars=<OSCARS server IP>
 
 Check the [code on github](http://github.com/hsr/oscars-trigger)
