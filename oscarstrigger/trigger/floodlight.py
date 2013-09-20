@@ -10,6 +10,8 @@ from oscarstrigger.trigger import movingAverage
 
 from oscarstrigger.communicator import oscars
 
+from config import EVENT_LISTENER_THRESHOLD, EVENT_LISTENER_BANDWIDTH
+
 from oscarstrigger import app
 log = app.logger
 
@@ -69,7 +71,7 @@ class FloodlightTrigger(FloodlightPortMonitor, Trigger):
         :param threshold: Threshold to generate an event
         :param dst_dpid: Destination node to use when acting. 
                             The current action is to request OSCARS's a new
-                            circuit with 10.5 times the configured threshold
+                            circuit with 20 times the configured threshold
         :param dst_port: Destination port to use when acting.
         :param act: True if trigger is supposed to act automatically
         """
@@ -120,7 +122,7 @@ class FloodlightTrigger(FloodlightPortMonitor, Trigger):
                 'src-port': elistener['src_port'],
                 'dst-port': elistener['dst_port'],
                 'ofrule': 'nw_proto=17',
-                'bandwidth': elistener['threshold']*20,
+                'bandwidth': elistener['threshold'] * EVENT_LISTENER_BANDWIDTH,
                 }
             request = json.dumps(request);
             response = requests.post(url, data=request, timeout=10);
@@ -166,7 +168,7 @@ class FloodlightTrigger(FloodlightPortMonitor, Trigger):
                     self.registerEventListener(
                         circuit['hops'][0]['node'],
                         circuit['hops'][0]['port'],
-                        int(circuit['bandwidth'] * .5),
+                        int(circuit['bandwidth'] * EVENT_LISTENER_THRESHOLD),
                         circuit['hops'][n_hops-1]['node'],
                         circuit['hops'][n_hops-1]['port'],
                         act=True,
