@@ -1,4 +1,4 @@
-#Simple Traffic Engineering with OSCARS and SDN
+#Simple WAN Traffic Engineering with OSCARS and SDN
 
 In the summer of 2013, ESnet put efforts on the integration of [OSCARS](http://www.es.net/services/virtual-circuits-oscars/ OSCARS) and [Floodlight](http://www.projectfloodlight.org/floodlight/). In the SDN context, OSCARS is an application that controls the [ESnet](http://es.net/) 100G network and Floodlight is a SDN controller that communicates with network devices using [OpenFlow](http://www.openflow.org/).
 
