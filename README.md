@@ -34,6 +34,10 @@ The OSCARS Trigger (this application) interfaces with OSCARS and the SDN control
 
 Here is an screenshot of the web interface:
 ![alt text](https://raw.github.com/hsr/oscars-trigger/master/screenshot.png "OSCARS Trigger Web interface")
+**Legend:**
+
+![alt text](https://raw.github.com/hsr/oscars-trigger/master/legend.png "Legend"")
+
 
 To install and run the application, follow these steps:
 
