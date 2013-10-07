@@ -1,8 +1,10 @@
 #Simple WAN Traffic Engineering with OSCARS and SDN
 
-In the summer of 2013, ESnet put efforts on the integration of [OSCARS](http://www.es.net/services/virtual-circuits-oscars/ OSCARS) and [Floodlight](http://www.projectfloodlight.org/floodlight/). In the SDN context, OSCARS is an application that controls the [ESnet](http://es.net/) 100G network and Floodlight is a SDN controller that communicates with network devices using [OpenFlow](http://www.openflow.org/).
+In the summer of 2013, ESnet put efforts on the integration of [OSCARS](http://www.es.net/services/virtual-circuits-oscars/ OSCARS) and [Floodlight](http://www.projectfloodlight.org/floodlight/). In the SDN context, OSCARS is an application that controls the [ESnet](http://es.net/) 100G network and Floodlight is a SDN controller that communicates with network devices using [OpenFlow](http://www.openflow.org/). 
 
-This simple application demonstrates how one can monitor and optimize a circuit-managed network using OSCARS and SDN (see the end of this README for a install guide). 
+The motivation for this work is the current management scenario of WAN networks [[1](http://www.research.att.com/techdocs/TD_100610.pdf)]. Optical and packet networks are still managed independently, increasing operational costs and making traffic engineering across multiple layers (packet/optical) a difficult task.
+
+This application demonstrates how one can monitor and optimize a circuit-managed network using OSCARS and SDN (see the end of this README for screenshots and install guide). With visibility of packet and optical layers, the application is able to monitor traffic at packet (flow) level and provide bandwidth on demand using a combination of optical and packet devices.
 
 The summer effort involved the development and extensions of multiple projects, including a new Path Setup Service for OSCARS, extensions to its internal classes and this web application.
 
@@ -14,19 +16,19 @@ ESnet's On-Demand Secure Circuits and Advance Reservation System (OSCARS) provid
 
 [^1]: Source: http://www.es.net/services/virtual-circuits-oscars/ 
 
-Check the [code on github](http://github.com/hsr/oscars)
+Check the [code on GitHub](http://github.com/hsr/oscars)
 
 ####OSCARS SDNPSS - Path Setup Service interface to SDN Controllers
 
 At the edge of the OSCARS Reservation Engine is the Path Setup Subsystem (PSS), which is responsible for the interface between network devices and OSCARS. This project implements the interface between OSCARS and Floodlight, the SDN controller that is currently supported by OSCARS.
 
-Check the [code on github](http://github.com/hsr/oscars-sdnpss)
+Check the [code on GitHub](http://github.com/hsr/oscars-sdnpss)
 
 ####OSCARS Listener - Requesting circuits using JSON
 
 This project implements a simple HTTP service that translates JSON circuit reservation requests to the OSCARS API.
 
-Check the [code on github](http://github.com/hsr/oscars-listener)
+Check the [code on GitHub](http://github.com/hsr/oscars-listener)
 
 #### OSCARS Trigger - Simple Traffic Engineering for OSCARS
 
@@ -56,4 +58,7 @@ To install and run the application, follow these steps:
     python ./run.py --controller=<Floodlight controller IP> \
                     --oscars=<OSCARS server IP>
 
-Check the [code on github](http://github.com/hsr/oscars-trigger)
+Check the [code on GitHub](http://github.com/hsr/oscars-trigger)
+
+
+[1] Robert D. Doverspike, and Jennifer Yates. ***Optical Network Management and Control.*** Proceedings of the IEEE 100(5):1092-1104 (2012)
